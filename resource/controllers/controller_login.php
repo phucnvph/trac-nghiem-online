@@ -10,6 +10,8 @@
 
 require_once 'views/view_login.php';
 require_once 'models/model_login.php';
+require_once 'models/model_admin.php';
+require_once 'models/model_student.php';
 
 class Controller_Login
 {
@@ -197,5 +199,99 @@ class Controller_Login
         }
 
         echo json_encode($result);
+    }
+
+    public function register()
+    {
+        $view = new View_Login();
+        $view->show_register();
+    }
+
+
+    public function submit_register()
+    {
+        $modelAdmin = new Model_Admin();
+        $modelStudent = new Model_Student();
+
+        $name = $_POST['name'] ?: '';
+        $username = $_POST['username'] ?: '';
+        $email = $_POST['email'] ?: '';
+        $birthday = $_POST['birthday'] ?: '2000-01-01';
+        $password = bin2hex(random_bytes(4));
+        $class_id = 1;
+        $gender = 1;
+        $result = [
+            'result' => 'OK',
+            'errors' => [],
+        ];
+
+        if ($modelStudent->check_username_exist($username)) {
+            $result['result'] = 'NG';
+            $result['errors'][] = 'Tài khoản đã tồn tại!';
+        }
+
+        if ($modelStudent->check_email_exist($email)) {
+            $result['result'] = 'NG';
+            $result['errors'][] = 'Email đã tồn tại!';
+        }
+
+        if ($result['result'] == 'OK') {
+            $modelAdmin->add_student($username, md5($password), $name, $class_id, $email, $birthday, $gender);
+            $domain = (empty($_SERVER['HTTPS']) ? 'http' : 'https') . "://$_SERVER[HTTP_HOST]";
+            if (!$this->send_mail_register_student($username, $password, $name, $email, $domain)) {
+                $modelAdmin->del_student_by_email($email);
+                $result['result'] = 'NG';
+                $result['errors'][] = 'Đăng ký thất bại';
+                echo json_encode($result);
+            }
+        }
+
+        echo json_encode($result);
+    }
+
+
+    public function send_mail_register_student($username, $password, $name, $email, $domain)
+    {
+        require_once 'res/libs/class.phpmailer.php';
+        require_once 'res/libs/class.smtp.php';
+        $mail = new PHPMailer(true);
+        //Server settings
+        $mail->CharSet = "UTF-8";
+        $mail->SMTPDebug = 0;                                       //Enable verbose debug output
+        $mail->isSMTP();                                            //Send using SMTP
+        $mail->SMTPAuth   = true;                                   //Enable SMTP authentication
+        $mail->Host       = Config::MAIL_HOST;                      //Set the SMTP server to send through
+        $mail->Username   = Config::MAIL_USERNAME;                  //SMTP username
+        $mail->Password   = Config::MAIL_PASSWORD;                  //SMTP password
+        $mail->SMTPSecure = Config::MAIL_ENCRYPTION;                //Enable implicit TLS encryption
+        $mail->Port       = Config::MAIL_PORT;                      //TCP port to connect to; use 587 if you have set `SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS`
+
+        //Recipients
+        $mail->setFrom('from@example.com', 'Mailer');
+        $mail->addAddress('joe@example.net', 'Joe User');           //Add a recipient
+        $mail->AddReplyTo('noreply24@ikun.org', 'IKun.Org');
+
+        //Content
+        $mail->isHTML(true);                                        //Set email format to HTML
+        $mail->Subject = 'Chúc mừng bạn đã đăng ký thành công tài khoản';
+        $mail->Body    = 'This is the HTML message body <b>in bold!</b>';
+        $mail->AltBody = 'This is the body in plain text for non-HTML mail clients';
+
+        $mail->MsgHTML("
+            <h3>Bạn đã đăng ký thành công tài khoản</h3>
+            <span><b>Tên:</b> $name</span><br>
+            <span><b>Email:</b> $email</span><br>
+            <span><b>Tài khoản:</b> $username</span><br>
+            <span><b>Mật khẩu:</b> $password</span><br>
+            <br>
+            <br>
+            <b>Đăng nhập tại:</b> <a href=\"$domain\" target=\"_blank\">$domain</a>
+        ");
+
+        if (!$mail->Send()) {
+            return false;
+        } else {
+            return true;
+        }
     }
 }

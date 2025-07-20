@@ -13,6 +13,7 @@ class Database
     private $db = null;
     private $sql = '';
     private $stmt = null;
+    private $param = [];
 
     public function __construct()
     {
@@ -27,7 +28,7 @@ class Database
         }
     }
 
-    public function set_query($sql = '', array $param = null)
+    public function set_query($sql = '', $param = [])
     {
         $this->sql = $sql;
         $this->param = $param;

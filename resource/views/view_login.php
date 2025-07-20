@@ -15,4 +15,10 @@ class View_Login
         require_once 'config/config.php';
         include 'res/templates/login.php';
     }
+
+    public function show_register()
+    {
+        require_once 'config/config.php';
+        include 'res/templates/register.php';
+    }
 }

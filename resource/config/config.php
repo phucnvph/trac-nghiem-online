@@ -19,6 +19,14 @@ class Config
     const RELEASE = "15/05/2020";
     const TIMEZONE = "Asia/Bangkok";
     const APP_URL = "http://localhost/";
+
     const BANK_CODE = "VPBank";
-    const BANK_STK = "0123456789";
+    const BANK_STK = "0123456789111";
+
+    const MAIL_DRIVER = "smtp";
+    const MAIL_HOST = "sandbox.smtp.mailtrap.io";
+    const MAIL_PORT = "2525";
+    const MAIL_USERNAME = "9ace2486af6db7";
+    const MAIL_PASSWORD = "28db8d02ae9366";
+    const MAIL_ENCRYPTION = "tls";
 }

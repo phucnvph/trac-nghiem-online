@@ -13,6 +13,7 @@ require_once 'views/view_package.php';
 class Controller_Package
 {
     public $student_info = array();
+    public $user_info;
     
     public function __construct()
     {
@@ -24,12 +25,14 @@ class Controller_Package
         require_once 'models/model_student.php';
         $student_model = new Model_Student();
         $user_info = $student_model->get_profiles($_SESSION['username']);
+        $this->user_info = $user_info;
         $this->student_info['ID'] = $user_info->ID;
         $this->student_info['username'] = $user_info->username;
         $this->student_info['name'] = $user_info->name;
         $this->student_info['avatar'] = $user_info->avatar;
         $this->student_info['class_id'] = $user_info->class_id;
         $this->student_info['grade_id'] = $user_info->grade_id;
+        $this->student_info['remaining_number'] = $user_info->remaining_number;
     }
 
     // Hiển thị trang mua gói
@@ -40,11 +43,11 @@ class Controller_Package
         
         $packages = $model->get_all_packages();
         $remaining_tests = $model->get_total_remaining_tests($this->student_info['ID']);
+        $remaining_tests += $this->user_info->remaining_number;
         
         $view->show_head_left($this->student_info);
         $view->show_packages($packages, $remaining_tests);
         $view->show_foot();
-        die("OK");
     }
 
     // Hiển thị lịch sử mua gói

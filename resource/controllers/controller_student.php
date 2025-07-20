@@ -19,10 +19,12 @@ require_once 'views/view_package.php';
 class Controller_Student
 {
     public $info =  array();
+    public $user_info;
     
     public function __construct()
     {
         $user_info = $this->profiles();
+        $this->user_info = $user_info;
         $this->info['ID'] = $user_info->ID;
         $this->update_last_login($this->info['ID']);
         $this->info['username'] = $user_info->username;
@@ -144,10 +146,13 @@ class Controller_Student
         
         // Kiểm tra lượt thi trước
         require_once 'models/model_package.php';
-        $package_model = new Model_Package();
+        $modelPackage = new Model_Package();
+
+        $remaining_tests = $modelPackage->get_total_remaining_tests($this->info['ID']);
+        $remaining_tests += $this->user_info->remaining_number;
         
-        if (!$package_model->has_test_attempts($this->info['ID'])) {
-            $result['status_value'] = "Bạn đã hết lượt thi. <a href='index.php?action=show_packages'>Mua thêm gói thi</a>";
+        if (!$remaining_tests) {
+            $result['status_value'] = "Bạn đã hết lượt thi. <a href='danh-sach-goi'>Mua thêm gói thi</a>";
             $result['status'] = 0;
             echo json_encode($result);
             return;
@@ -160,7 +165,11 @@ class Controller_Student
             $result['status'] = 0;
         } else {
             // Trừ lượt thi khi bắt đầu làm bài
-            $package_model->use_test_attempt($this->info['ID']);
+            $minusPackage = $modelPackage->use_test_attempt($this->info['ID']);
+            if (!$minusPackage) {
+                $model->minusRemaining($this->info['ID']);
+            }
+
             $list_quest = $model->get_quest_of_test($test_code);
             foreach ($list_quest as $quest) {
                 $array = array();
@@ -285,6 +294,7 @@ class Controller_Student
             $scores = $model->get_scores($this->info['ID']);
             $tests = $model->get_list_tests();
             $remaining_tests = $modelPackage->get_total_remaining_tests($this->info['ID']);
+            $remaining_tests += $this->user_info->remaining_number;
             $view->show_dashboard($tests, $scores, $remaining_tests);
             $view->show_foot();
         } else {
@@ -334,10 +344,10 @@ class Controller_Student
             $test_code = htmlspecialchars($_GET['test_code']);
             $score = $model->get_score($this->info['ID'], $test_code);
             $test_status = $model->get_test($test_code)->status_id;
-            if ($test_status != 5) {
-                $result = null;
-            } else {
+            if ($test_status == 1) {
                 $result = $model->get_result_quest($test_code, $this->info['ID']);
+            } else {
+                $result = null;
             }
             if ($score) {
                 $view->show_head_left($this->info);
@@ -386,6 +396,7 @@ class Controller_Student
         
         $packages = $model->get_all_packages();
         $remaining_tests = $model->get_total_remaining_tests($this->info['ID']);
+        $remaining_tests += $this->user_info->remaining_number;
         
         $view->show_head_left($this->info);
         $view->show_packages($packages, $remaining_tests);

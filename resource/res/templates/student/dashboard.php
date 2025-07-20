@@ -11,7 +11,6 @@
 					<div id="tests_list">
 						<span class="title">Tên: <?=$tests[$i]->test_name?></span><br />
 						<span class="title">Môn: <?=$tests[$i]->subject_detail?></span><br />
-						<span class="title">Khối: <?=$tests[$i]->grade?></span><br />
 						<span class="title">Mã Đề: <?=$tests[$i]->test_code?></span><br />
 						<span class="title">Số Câu Hỏi: <?=$tests[$i]->total_questions?></span><br />
 						<span class="title">Thời Gian: <?=$tests[$i]->time_to_do?> Phút</span><br />
@@ -83,7 +82,7 @@
 <div id="no-attempts-modal" class="modal">
     <div class="modal-content">
         <h4><i class="material-icons left red-text">warning</i>Hết lượt thi</h4>
-        <p>Bạn đã hết lượt thi. Vui lòng mua thêm gói thi để tiếp tục làm bài.</p>
+        <i style="color: red;">Bạn đã hết lượt thi. Vui lòng mua thêm gói thi để tiếp tục làm bài.</i>
         <div class="row">
             <div class="col s12">
                 <div class="card orange lighten-4">
@@ -98,8 +97,7 @@
         </div>
     </div>
     <div class="modal-footer">
-        <!-- <a href="#!" class="modal-close waves-effect waves-red btn-flat">Để sau</a> -->
-        <a href="index.php?action=show_packages" class="waves-effect waves-green btn green">
+        <a href="danh-sach-goi" class="waves-effect waves-green btn green">
             <i class="material-icons left">shopping_cart</i>Mua Gói Thi
         </a>
     </div>

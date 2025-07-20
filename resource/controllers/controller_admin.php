@@ -11,6 +11,8 @@
 require_once('core/Base.php');
 require_once('config/config.php');
 require_once('models/model_admin.php');
+require_once('models/model_package.php');
+require_once('models/model_settings.php');
 require_once('views/view_admin.php');
 //load thư viện PhpSpreadSheet
 require 'res/libs/SpreadSheet/vendor/autoload.php';
@@ -215,10 +217,10 @@ class Controller_Admin
 
         echo json_encode($res);
     }
-    private function edit_student($student_id, $birthday, $password, $name, $class_id, $gender)
+    private function edit_student($student_id, $birthday, $password, $name, $class_id, $gender, $remaining_number)
     {
         $model = new Model_Admin();
-        $model->edit_student($student_id, $birthday, $password, $name, $class_id, $gender);
+        $model->edit_student($student_id, $birthday, $password, $name, $class_id, $gender, $remaining_number);
     }
     private function del_student($student_id)
     {
@@ -259,14 +261,11 @@ class Controller_Admin
         $question_id,
         $subject_id,
         $question_content,
-        $grade_id,
-        $unit,
         $answer_a,
         $answer_b,
         $answer_c,
         $answer_d,
         $correct_answer,
-        $level_id
     )
     {
         $model = new Model_Admin();
@@ -274,14 +273,11 @@ class Controller_Admin
             $question_id,
             $subject_id,
             $question_content,
-            $grade_id,
-            $unit,
             $answer_a,
             $answer_b,
             $answer_c,
             $answer_d,
             $correct_answer,
-            $level_id
         );
     }
     private function del_question($question_id)
@@ -292,28 +288,22 @@ class Controller_Admin
     private function add_question(
         $subject_id,
         $question_content,
-        $grade_id,
-        $unit,
         $answer_a,
         $answer_b,
         $answer_c,
         $answer_d,
         $correct_answer,
-        $level_id
     )
     {
         $model = new Model_Admin();
         return $model->add_question(
             $subject_id,
             $question_content,
-            $grade_id,
-            $unit,
             $answer_a,
             $answer_b,
             $answer_c,
             $answer_d,
             $correct_answer,
-            $level_id,
             $this->info["username"]
         );
     }
@@ -383,10 +373,9 @@ class Controller_Admin
     }
     public function get_list_units()
     {
-        $grade_id = isset($_POST['grade_id']) ? $_POST['grade_id'] : '';
         $subject_id = isset($_POST['subject_id']) ? $_POST['subject_id'] : '';
-        $model = new Model_Admin(); 
-        echo json_encode($model->get_list_units($grade_id, $subject_id));
+        $model = new Model_Admin();
+        echo json_encode($model->get_list_units($subject_id));
     }
     public function get_list_levels_of_unit()
     {
@@ -414,16 +403,6 @@ class Controller_Admin
         $student->name = "Học Sinh";
         $student->icon = "fa-user";
         $student->actionlink = "quan-ly-hoc-sinh";
-        $grade = new stdclass();
-        $grade->count = $model->get_total_grade();
-        $grade->name = "Khối";
-        $grade->icon = "fa-archive";
-        $grade->actionlink = "#";
-        $class = new stdclass();
-        $class->count = $model->get_total_class();
-        $class->name = "Lớp";
-        $class->icon = "fa-archive";
-        $class->actionlink = "quan-ly-lop";
         $subject = new stdclass();
         $subject->count = $model->get_total_subject();
         $subject->name = "Môn Học";
@@ -439,7 +418,7 @@ class Controller_Admin
         $test->name = "Bài Thi";
         $test->icon = "fa-edit";
         $test->actionlink = "quan-ly-de-thi";
-        $total = array($admin,$teacher,$student,$grade,$class,$subject,$question,$test);
+        $total = array($admin,$teacher,$student,$subject,$question,$test);
         return $total;
     }
     private function notify_teacher($ID, $teacher_id)
@@ -737,7 +716,7 @@ class Controller_Admin
         $result = array();
         $name = isset($_POST['name']) ? Htmlspecialchars(addslashes($_POST['name'])) : '';
         $username = isset($_POST['username']) ? Htmlspecialchars(addslashes($_POST['username'])) : '';
-        $class_id = isset($_POST['class_id']) ? Htmlspecialchars(addslashes($_POST['class_id'])) : '';
+        $class_id = isset($_POST['class_id']) ? Htmlspecialchars(addslashes($_POST['class_id'])) : '1';
         $email = isset($_POST['email']) ? Htmlspecialchars(addslashes($_POST['email'])) : '';
         $birthday = isset($_POST['birthday']) ? Htmlspecialchars(addslashes($_POST['birthday'])) : '';
         $gender = isset($_POST['gender']) ? Htmlspecialchars(addslashes($_POST['gender'])) : '';
@@ -812,13 +791,14 @@ class Controller_Admin
         $username = isset($_POST['username']) ? Htmlspecialchars(addslashes($_POST['username'])) : '';
         $gender = isset($_POST['gender_id']) ? Htmlspecialchars(addslashes($_POST['gender_id'])) : '';
         $birthday = isset($_POST['birthday']) ? Htmlspecialchars(addslashes($_POST['birthday'])) : '';
-        $class_id = isset($_POST['class_id']) ? Htmlspecialchars(addslashes($_POST['class_id'])) : '';
+        $class_id = isset($_POST['class_id']) ? Htmlspecialchars(addslashes($_POST['class_id'])) : '1';
+        $remaining_number = isset($_POST['remaining_number']) ? Htmlspecialchars(addslashes($_POST['remaining_number'])) : '1';
         $password = isset($_POST['password']) ? md5($_POST['password']) : '';
         if (empty($name)||empty($gender)||empty($birthday)||empty($student_id)||empty($password)) {
             $result['status_value'] = "Không được bỏ trống các trường nhập!";
             $result['status'] = 0;
         } else {
-            $this->edit_student($student_id, $birthday, $password, $name, $class_id, $gender);
+            $this->edit_student($student_id, $birthday, $password, $name, $class_id, $gender, $remaining_number);
             $result['status_value'] = "Sửa thành công!";
             $result['status'] = 1;
         }
@@ -844,17 +824,21 @@ class Controller_Admin
     {
         $result = array();
         $question_detail = isset($_POST['question_detail']) ? $_POST['question_detail'] : '';
-        $grade_id = isset($_POST['grade_id']) ? $_POST['grade_id'] : '';
-        $unit = isset($_POST['unit']) ? $_POST['unit'] : '';
         $subject_id = isset($_POST['subject_id']) ? $_POST['subject_id'] : '';
         $answer_a = isset($_POST['answer_a']) ? $_POST['answer_a'] : '';
         $answer_b = isset($_POST['answer_b']) ? $_POST['answer_b'] : '';
         $answer_c = isset($_POST['answer_c']) ? $_POST['answer_c'] : '';
         $answer_d = isset($_POST['answer_d']) ? $_POST['answer_d'] : '';
         $correct_answer = isset($_POST['correct_answer']) ? $_POST['correct_answer'] : '';
-        $level_id = isset($_POST['level_id']) ? $_POST['level_id'] : '';
         $true_correct_answer = "";
-        if (empty($question_detail)||empty($grade_id)||empty($unit)||empty($answer_a)||empty($answer_b)||empty($answer_c)||empty($answer_d)||empty($correct_answer)) {
+        if (
+            empty($question_detail)
+            ||empty($answer_a)
+            ||empty($answer_b)
+            ||empty($answer_c)
+            ||empty($answer_d)
+            ||empty($correct_answer)
+        ) {
             $result['status_value'] = "Không được bỏ trống các trường nhập";
             $result['status'] = 0;
         } else {
@@ -873,14 +857,11 @@ class Controller_Admin
             $res = $this->add_question(
                 $subject_id,
                 $question_detail,
-                $grade_id,
-                $unit,
                 $answer_a,
                 $answer_b,
                 $answer_c,
                 $answer_d,
                 $true_correct_answer,
-                $level_id
             );
             if ($res) {
                 $result['status_value'] = "Thêm thành công!";
@@ -930,14 +911,10 @@ class Controller_Admin
             if ($correct_answer == "D") {
                 $true_correct_answer = $answer_d;
             }
-            $grade_id = $sheetData[$i]['H'];
-            $unit = $sheetData[$i]['I'];
             $level_id = $sheetData[$i]['J'];
             $add = $this->add_question(
                 $subject_id,
                 $question_content,
-                $grade_id,
-                $unit,
                 $answer_a,
                 $answer_b,
                 $answer_c,
@@ -981,16 +958,13 @@ class Controller_Admin
         $result = array();
         $question_id = isset($_POST['question_id']) ? $_POST['question_id'] : '';
         $question_content = isset($_POST['question_detail']) ? $_POST['question_detail'] : '';
-        $grade_id = isset($_POST['grade_id']) ? $_POST['grade_id'] : '';
         $subject_id = isset($_POST['subject_id']) ? $_POST['subject_id'] : '';
-        $unit = isset($_POST['unit']) ? $_POST['unit'] : '';
         $answer_a = isset($_POST['answer_a']) ? $_POST['answer_a'] : '';
         $answer_b = isset($_POST['answer_b']) ? $_POST['answer_b'] : '';
         $answer_c = isset($_POST['answer_c']) ? $_POST['answer_c'] : '';
         $answer_d = isset($_POST['answer_d']) ? $_POST['answer_d'] : '';
-        $level_id = isset($_POST['level_id']) ? $_POST['level_id'] : '';
         $correct_answer = isset($_POST['correct_answer']) ? $_POST['correct_answer'] : '';
-        if (empty($question_content)||empty($grade_id)||empty($unit)||empty($answer_a)||empty($answer_b)||empty($answer_c)||empty($answer_d)||empty($correct_answer)) {
+        if (empty($question_content)||empty($answer_a)||empty($answer_b)||empty($answer_c)||empty($answer_d)||empty($correct_answer)) {
             $result['status_value'] = "Không được bỏ trống các trường nhập!";
             $result['status'] = 0;
         } else {
@@ -1010,14 +984,11 @@ class Controller_Admin
                 $question_id,
                 $subject_id,
                 $question_content,
-                $grade_id,
-                $unit,
                 $answer_a,
                 $answer_b,
                 $answer_c,
                 $answer_d,
                 $true_correct_answer,
-                $level_id
             );
             if ($res) {
                 $result['status_value'] = "Sửa thành công, chuẩn bị chuyển trang!";
@@ -1288,7 +1259,7 @@ class Controller_Admin
         $result = array();
         $test_name = isset($_POST['test_name']) ? Htmlspecialchars(addslashes($_POST['test_name'])) : '';
         $password = isset($_POST['password']) ? md5($_POST['password']) : '';
-        $grade_id = isset($_POST['grade_id']) ? Htmlspecialchars(addslashes($_POST['grade_id'])) : '';
+        $grade_id = isset($_POST['grade_id']) ? Htmlspecialchars(addslashes($_POST['grade_id'])) : '1';
         $subject_id = isset($_POST['subject_id']) ? Htmlspecialchars(addslashes($_POST['subject_id'])) : '';
         $total_questions = isset($_POST['total_questions']) ? addslashes($_POST['total_questions']) : '';
         $time_to_do = isset($_POST['time_to_do']) ? Htmlspecialchars(addslashes($_POST['time_to_do'])) : '';
@@ -1315,22 +1286,12 @@ class Controller_Admin
             $result['status'] = 1;
             //Tạo bộ câu hỏi cho đề thi
             $model = new Model_Admin();
-            $list_unit = $model->get_list_units($grade_id, $subject_id);
-            foreach ($list_unit as $unit) {
-                $list_lvl_of_unit = $model->get_list_levels_of_unit($grade_id, $subject_id, $unit->unit);
-                foreach ($list_lvl_of_unit as $level) {
-                    $limit = $_POST["unit_".$unit->unit."_level_".$level->level_id];
-                    $list_quest = $model->list_quest_of_unit(
-                        $grade_id,
-                        $subject_id,
-                        $unit->unit,
-                        $level->level_id,
-                        $limit
-                    );
-                    foreach ($list_quest as $quest) {
-                        $model->add_quest_to_test($test_code, $quest->question_id);
-                    }
-                }
+            $list_quest = $model->list_quest_of_subject(
+                $subject_id,
+                $total_questions
+            );
+            foreach ($list_quest as $quest) {
+                $model->add_quest_to_test($test_code, $quest->question_id);
             }
         }
         echo json_encode($result);
@@ -1532,13 +1493,16 @@ class Controller_Admin
     {
         $view = new View_Admin();
         $model = new Model_Admin();
+        $modelPackage = new Model_Package();
         
         $orders = $model->get_all_orders();
         $student_packages = $model->get_all_student_packages();
         $students = $model->get_list_students('student_id', 'ASC', 0, 1000);
+
+        $packageMaster = $modelPackage->get_all_packages();
         
         $view->show_head_left($this->info);
-        $view->show_packages_panel($orders, $student_packages, $students);
+        $view->show_packages_panel($orders, $student_packages, $students, $packageMaster);
         $view->show_foot();
     }
 
@@ -1548,14 +1512,14 @@ class Controller_Admin
         $result = array();
         $student_id = isset($_POST['student_id']) ? intval($_POST['student_id']) : 0;
         $test_count = isset($_POST['test_count']) ? intval($_POST['test_count']) : 0;
-        $package_type = 'Gói Cơ Bản';
+        $package_id = isset($_POST['package_id']) ? intval($_POST['package_id']) : 0;
         
-        if (empty($student_id) || $test_count <= 0 || empty($package_type)) {
+        if (empty($student_id) || $test_count <= 0 || empty($package_id)) {
             $result['status_value'] = "Vui lòng chọn học sinh và nhập số lượt thi hợp lệ!";
             $result['status'] = 0;
         } else {
             $model = new Model_Admin();
-            $grant = $model->manual_grant_tests($student_id, $test_count);
+            $grant = $model->manual_grant_tests($student_id, $test_count, $package_id);
             
             if ($grant) {
                 $result['status_value'] = "Cấp phát thành công " . $test_count . " lượt thi!";
@@ -1591,6 +1555,44 @@ class Controller_Admin
                 $result['status'] = 0;
             }
         }
+        echo json_encode($result);
+    }
+    
+    public function show_settings_panel()
+    {
+        $view = new View_Admin();
+        $model = new Model_Settings();
+
+        $get_settings = $model->get_settings() ?: [];
+        $settings = [];
+        foreach ($get_settings as $item) {
+            $settings[$item->key] = $item->value;
+        }
+
+        $view->show_head_left($this->info);
+        $view->show_settings_panel([
+            'SEPAY_NGAN_HANG' => Model_Settings::SEPAY_NGAN_HANG,
+            'settings' => $settings,
+        ]);
+        $view->show_foot();
+    }
+
+    public function save_settings()
+    {
+        $model = new Model_Settings();
+        $settings = $_POST['settings'] ?: [];
+        
+        foreach($settings as $key => $value) {
+            if ($model->get_setting($key)) {
+                $model->update_settings(["$key" => $value]);
+            } else {
+                $model->add_settings(["$key" => $value]);
+            }
+        }
+
+        $result = [];
+        $result['status_value'] = "Lưu thành công!";
+        $result['status'] = 1;
         echo json_encode($result);
     }
 }

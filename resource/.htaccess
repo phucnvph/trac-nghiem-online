@@ -33,12 +33,15 @@ RewriteRule ^thong-tin$ /index.php?action=show_about [L]
 RewriteRule ^trang-ca-nhan$ /index.php?action=show_profiles [L]
 RewriteRule ^trang-chu$ /index.php?action=show_dashboard [L]
 RewriteRule ^thong-bao$ /index.php?action=show_notifications [L]
+RewriteRule ^settings$ /index.php?action=show_settings_panel [L]
+RewriteRule ^save-settings$ /index.php?action=save_settings [L]
+RewriteRule ^register$ /index.php?action=register [L]
 
 RewriteRule ^danh-sach-goi$ /index.php?action=show_packages [L]
 RewriteRule ^tao-don-hang$ /index.php?action=create_order [L]
 RewriteRule ^lich-su-don-hang$ /index.php?action=show_order_history [L]
 RewriteRule ^check-order-status$ /index.php?action=check_order_status [L]
-
 RewriteRule ^quan-ly-goi-thi$ /index.php?action=show_packages_panel [L]
+RewriteRule ^callback$ /index.php?action=callback [L]
 
 ErrorDocument 404 /404

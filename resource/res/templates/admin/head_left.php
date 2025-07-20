@@ -47,7 +47,6 @@
 					<div class="collapsible-body list">
 						<a href="quan-ly-admin" class="menu-list cursor">Quản Lý Admin</a>
 						<a href="quan-ly-giao-vien" class="menu-list cursor">Quản Lý Gíao Viên</a>
-						<a href="quan-ly-lop" class="menu-list cursor">Quản Lý Lớp</a>
 						<a href="quan-ly-hoc-sinh" class="menu-list cursor">Quản Lý Học Sinh</a>
 						<a href="quan-ly-mon-hoc" class="menu-list cursor">Quản Lý Môn</a>
 						<a href="quan-ly-ngan-hang-cau-hoi" class="menu-list cursor">Quản Lý Câu Hỏi</a>
@@ -56,6 +55,7 @@
 					</div>
 				</li>
 				<a href="gui-thong-bao" class="collapsible-header font-color"><i class="material-icons">send</i>Gửi Thông Báo</a>
+				<a href="settings" class="collapsible-header font-color"><i class="material-icons">settings</i>Cài Đặt</a>
 				<a href="thong-tin" class="collapsible-header font-color"><i class="material-icons">insert_comment</i>Liên Hệ</a>
 			</ul>
 		</div>
@@ -66,7 +66,7 @@
 				<p>Xác nhận đăng xuất</p>
 			</div>
 			<div class="modal-footer">
-				<a href="#!" class="modal-action modal-close waves-effect waves-green btn-flat">Không</a>
+				<a href="javascript:;" class="modal-action modal-close waves-effect waves-green btn-flat">Không</a>
 				<a class="modal-action modal-close waves-effect waves-green btn-flat" id="btn-logout">Có</a>
 			</div>
 		</div>

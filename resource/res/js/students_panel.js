@@ -109,10 +109,6 @@ function get_list_students() {
             "title": "Mã Học Sinh"
         },
         {
-            "data": "class_name",
-            "title": "Lớp"
-        },
-        {
             "data": "email",
             "title": "Email"
         },
@@ -123,6 +119,10 @@ function get_list_students() {
         {
             "data": "birthday",
             "title": "Ngày Sinh"
+        },
+        {
+            "data": "remaining_number",
+            "title": "Lượt Thi"
         },
         {
             "data": "last_login",
@@ -230,6 +230,10 @@ function student_edit_button(data) {
     '<input type="password" name="password" required>' +
     '<label for="password">Mật Khẩu</label>' +
     '</div>' +
+        '<div class="input-field">' +
+            '<input type="text" value="' + data.remaining_number + '" name="remaining_number" required min="0">' +
+            '<label for="remaining_number" class="active">Lượt Thi</label>' +
+    '</div>' +
     '</div>' +
     '<div class="col l6 s12">' +
     '<div class="input-field">' +
@@ -239,11 +243,6 @@ function student_edit_button(data) {
     '<option value="3">Nữ</option>' +
     '</select>' +
     '<label>Giới Tính</label>' +
-    '</div>' +
-    '<div class="input-field">' +
-    '<select name="class_id" onchange="test(this.value)">' +
-    '</select>' +
-    '<label>Lớp</label>' +
     '</div>' +
     '<div class="input-field">' +
     '<input type="date" value="' + data.birthday + '" name="birthday" required>' +

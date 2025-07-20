@@ -16,10 +16,9 @@ class Model_Student extends Database
     {
         $sql = "SELECT DISTINCT students.student_id as ID,
         students.username,students.name,students.email,students.avatar,students.class_id,students.birthday,
-        students.last_login,genders.gender_id,genders.gender_detail,classes.grade_id,students.doing_exam,
+        students.last_login,genders.gender_id,genders.gender_detail,students.doing_exam,students.remaining_number,
         students.time_remaining FROM `students`
         INNER JOIN genders ON genders.gender_id = students.gender_id
-        INNER JOIN classes ON classes.class_id = students.class_id
         WHERE username = :username";
 
         $param = [ ':username' => $username ];
@@ -164,13 +163,12 @@ class Model_Student extends Database
     {
         $sql = "
         SELECT DISTINCT tests.test_code,tests.test_name,tests.password,tests.total_questions,tests.time_to_do,
-        tests.note,tests.timest, grades.detail as grade,subjects.subject_detail,statuses.status_id,
+        tests.note,tests.timest,subjects.subject_detail,statuses.status_id,
         statuses.detail as status FROM `tests`
-        INNER JOIN grades ON grades.grade_id = tests.grade_id
         INNER JOIN subjects ON subjects.subject_id = tests.subject_id
         INNER JOIN statuses ON statuses.status_id = tests.status_id 
         WHERE statuses.status_id != 7
-        ORDER BY timest DESC";
+        ORDER BY tests.timest DESC";
 
         $this->set_query($sql);
         return $this->load_rows();
@@ -222,7 +220,7 @@ class Model_Student extends Database
 
     public function get_doing_quest($test_code, $student_id)
     {
-        $sql = "SELECT DISTINCT student_test_detail.answer_a,student_test_detail.answer_b,
+        $sql = "SELECT student_test_detail.answer_a,student_test_detail.answer_b,
         student_test_detail.answer_c,student_test_detail.answer_d,
         student_test_detail.student_answer,questions.question_id,
         student_test_detail.test_code,questions.question_content FROM student_test_detail
@@ -237,7 +235,7 @@ class Model_Student extends Database
 
     public function get_result_quest($test_code,$student_id)
     {
-        $sql = "SELECT DISTINCT student_test_detail.answer_a,student_test_detail.answer_b,
+        $sql = "SELECT student_test_detail.answer_a,student_test_detail.answer_b,
         student_test_detail.answer_c,student_test_detail.answer_d,student_test_detail.student_answer,
         questions.question_id,student_test_detail.test_code,questions.question_content,
         questions.correct_answer,tests.total_questions FROM student_test_detail
@@ -294,5 +292,50 @@ class Model_Student extends Database
 
         $this->set_query($sql, $param);
         return $this->execute_return_status();
+    }
+
+    public function check_username_exist($username)
+    {
+        $sql = "SELECT 1 FROM teachers WHERE username = :username
+        UNION SELECT 1 FROM admins WHERE username = :username
+        UNION SELECT 1 FROM students WHERE username = :username";
+
+        $param = [':username' => $username];
+
+        $this->set_query($sql, $param);
+
+        if ($this->load_row() != '') {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public function check_email_exist($email)
+    {
+        $sql = "SELECT 1 FROM teachers WHERE email = :email
+        UNION SELECT 1 FROM admins WHERE email = :email
+        UNION SELECT 1 FROM students WHERE email = :email";
+
+        $param = [':email' => $email];
+
+        $this->set_query($sql, $param);
+
+        if ($this->load_row() != '') {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public function minusRemaining($student_id)
+    {
+        $sql="UPDATE students SET remaining_number = remaining_number - 1 WHERE student_id = :student_id";
+
+        $param = [ ':student_id' => $student_id];
+
+        $this->set_query($sql, $param);
+        $this->execute_return_status();
+        return true;
     }
 }

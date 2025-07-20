@@ -125,7 +125,7 @@ function get_list_questions() {
             "targets":3,
             "render": function(data, type, meta) 
             {
-                return 'Môn ' + meta.subject_detail + ', Chương ' + meta.unit + ', ' + meta.level_detail + ', ' + meta.grade_detail + '';
+                return 'Môn ' + meta.subject_detail;
             }
         },
         {

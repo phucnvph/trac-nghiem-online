@@ -72,6 +72,10 @@ class View_Admin
     {
         include 'res/templates/admin/notifications_panel.html';
     }
+    public function show_settings_panel($data = [])
+    {
+        include 'res/templates/admin/settings_panel.php';
+    }
     public function show_about()
     {
         require_once 'config/config.php';
@@ -85,7 +89,7 @@ class View_Admin
     {
         include 'res/templates/shared/404.html';
     }
-    public function show_packages_panel($orders, $student_packages, $students)
+    public function show_packages_panel($orders, $student_packages, $students, $packageMaster)
     {
         include 'res/templates/admin/packages_panel.php';
     }

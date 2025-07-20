@@ -35,12 +35,20 @@ if ($is_IM->INSTALL_MODE) {
     } else {
         $action = $_GET['action'];
     }
-    require_once 'controllers/controller_login.php';
-    $login = new Controller_Login();
-    if (is_callable([$login, $action])) {
-        $login->$action();
+
+    if ($action == 'callback') {
+        require_once 'controllers/Controller_Callback.php';
+        $callbackController = new Controller_Callback();
+        $callbackController->callback();
+
     } else {
-        header("Refresh:0; url=index.php");
-        $login->show_login();
+        require_once 'controllers/controller_login.php';
+        $login = new Controller_Login();
+        if (is_callable([$login, $action])) {
+            $login->$action();
+        } else {
+            header("Refresh:0; url=index.php");
+            $login->show_login();
+        }
     }
 }
