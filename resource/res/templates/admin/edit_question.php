@@ -72,20 +72,6 @@
                             </select>
                         </div>
                         <div class="input-field">
-                            <select name="grade_id" id="grade_id">
-                                <?php
-                                for ($i = 0; $i < count($grades);$i++){
-                                    if($grades[$i]->grade_id == $question->grade_id){
-                                        echo '<option value="'.$grades[$i]->grade_id.'" selected>'.$grades[$i]->detail.'</option>';
-                                    } else {
-                                        echo '<option value="'.$grades[$i]->grade_id.'">'.$grades[$i]->detail.'</option>';
-                                    }
-                                }
-                                 ?>
-                            </select>
-                            <label>Chọn Khối</label>
-                        </div>
-                        <div class="input-field">
                             <select name="subject_id" id="subject_id">
                                 <?php
                                 for ($i = 0; $i < count($subjects);$i++){
@@ -98,29 +84,6 @@
                                  ?>
                             </select>
                             <label>Chọn Môn</label>
-                        </div>
-                        <div class="input-field">
-                            <input name="unit" type="number" required="" value="<?=$question->unit?>">
-                            <label>Câu Hỏi Thuộc Chương?</label>
-                        </div>
-                        <div class="input-field">
-                            <select name="level_id" id="level_id">
-                                <?php
-                                if($question->level_id == 1) {
-                                    $ez = "selected";
-                                }
-                                if($question->level_id == 2) {
-                                    $nor = "selected";
-                                }
-                                if($question->level_id == 3) {
-                                    $dif = "selected";
-                                }
-                                 ?>
-                                <option value="1" <?=$ez?>>Dễ</option>
-                                <option value="2" <?=$nor?>>Trung Bình</option>
-                                <option value="3" <?=$dif?>>Khó</option>
-                            </select>
-                            <label>Độ Khó Câu Hỏi?</label>
                         </div>
                         <input name="question_id" type="hidden" value="<?=$question->question_id?>">
                         <div class="col l12 s12">

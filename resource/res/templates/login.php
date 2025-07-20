@@ -46,6 +46,10 @@
 							</button>
 						</div>
 					</form>
+
+					<div style="margin-top: 10px;">
+						<a href="register"><i>Tạo tài khoản →</i></a>
+					</div>
 				</div>
 			</div>
 		</div>

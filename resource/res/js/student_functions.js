@@ -143,8 +143,8 @@ function check_password() {
                                 </div>
                             </div>
                             <div class="modal-footer">
-                                <a href="#!" class="modal-close waves-effect waves-red btn-flat">Để sau</a>
-                                <a href="index.php?action=show_packages" class="waves-effect waves-green btn green">
+                                <a href="javascript:;" class="modal-close waves-effect waves-red btn-flat">Để sau</a>
+                                <a href="danh-sach-goi" class="waves-effect waves-green btn green">
                                     <i class="material-icons left">shopping_cart</i>Mua Gói Thi
                                 </a>
                             </div>

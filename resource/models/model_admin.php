@@ -238,9 +238,8 @@ class Model_Admin extends Database
     {
         $sql = "
         SELECT DISTINCT 
-        student_id,username,name,email,avatar,birthday,last_login,gender_detail,class_name 
+        student_id,username,name,email,avatar,birthday,last_login,gender_detail,remaining_number
         FROM `students`
-        INNER JOIN classes ON students.class_id = classes.class_id
         INNER JOIN genders ON students.gender_id = genders.gender_id
         ORDER BY $column_order $sort_order LIMIT $start, $offset";
 
@@ -251,14 +250,12 @@ class Model_Admin extends Database
     {
         $sql = "
         SELECT DISTINCT 
-        student_id,username,name,email,avatar,birthday,last_login,gender_detail,class_name 
+        student_id,username,name,email,avatar,birthday,last_login,gender_detail,remaining_number
         FROM `students`
-        INNER JOIN classes ON students.class_id = classes.class_id
         INNER JOIN genders ON students.gender_id = genders.gender_id
         WHERE students.student_id LIKE '%$keyword%' OR students.username 
         LIKE '%$keyword%' OR students.name LIKE '%$keyword%' OR students.email 
         LIKE '%$keyword%' OR students.birthday LIKE '%$keyword%' OR genders.gender_detail 
-        LIKE '%$keyword%' OR classes.class_name LIKE '%$keyword%'
         ORDER BY students.$column_order $sort_order LIMIT $start, $offset";
 
         $this->set_query($sql);
@@ -267,30 +264,28 @@ class Model_Admin extends Database
     public function get_total_students_search($keyword)
     {
         $sql = "SELECT DISTINCT count(students.student_id) as total FROM `students`
-        INNER JOIN classes ON students.class_id = classes.class_id
         INNER JOIN genders ON students.gender_id = genders.gender_id
         WHERE students.student_id LIKE '%$keyword%' OR students.username 
         LIKE '%$keyword%' OR students.name LIKE '%$keyword%' OR students.email 
-        LIKE '%$keyword%' OR students.birthday LIKE '%$keyword%' OR genders.gender_detail 
-        LIKE '%$keyword%' OR classes.class_name LIKE '%$keyword%'";
+        LIKE '%$keyword%' OR students.birthday LIKE '%$keyword%' OR genders.gender_detail LIKE '%$keyword%'";
 
         $this->set_query($sql);
         return $this->load_row()->total;
     }
-    public function edit_student($student_id, $birthday, $password, $name, $class_id, $gender)
+    public function edit_student($student_id, $birthday, $password, $name, $class_id, $gender, $remaining_number)
     {
         $sql="UPDATE students set birthday = :birthday, password = :password, name = :name, 
-        class_id = :class_id, gender_id = :gender where student_id = :student_id";
+        class_id = :class_id, gender_id = :gender, remaining_number = :remaining_number where student_id = :student_id";
 
-        $param = [ ':student_id' => $student_id, ':birthday' => $birthday,
-        ':password' => $password, ':name' => $name, ':class_id' => $class_id, ':gender' => $gender ];
-
-        $this->set_query($sql, $param);
-        $this->execute_return_status();
-
-        $sql="UPDATE scores set class_id = :class_id where student_id = :student_id";
-
-        $param = [ ':class_id' => $class_id, ':student_id' => $student_id ];
+        $param = [
+            ':student_id' => $student_id,
+            ':birthday' => $birthday,
+            ':password' => $password,
+            ':name' => $name,
+            ':class_id' => $class_id,
+            ':gender' => $gender,
+            ':remaining_number' => $remaining_number
+        ];
 
         $this->set_query($sql, $param);
         $this->execute_return_status();
@@ -320,15 +315,34 @@ class Model_Admin extends Database
     }
     public function add_student($username, $password, $name, $class_id, $email, $birthday, $gender)
     {
-        $sql="INSERT INTO students (username,password,name,class_id,email,birthday,gender_id) 
-        VALUES (:username,:password,:name,:class_id,:email,:birthday,:gender)";
+        $sql="INSERT INTO students (username,password,name,class_id,email,birthday,gender_id,last_login) 
+        VALUES (:username,:password,:name,:class_id,:email,:birthday,:gender,:last_login)";
 
-        $param = [ ':username' => $username, ':password' => $password, ':name' =>
-        $name, ':class_id' => $class_id, ':email' => $email, ':birthday' => $birthday, ':gender' => $gender ];
+        $param = [
+            ':username' => $username,
+            ':password' => $password,
+            ':name' => $name,
+            ':class_id' => $class_id,
+            ':email' => $email,
+            ':birthday' => $birthday,
+            ':gender' => $gender,
+            ':last_login' => date('Y-m-d H:i:s')
+        ];
 
         $this->set_query($sql, $param);
         return $this->execute_return_status();
     }
+
+    public function del_student_by_email($email)
+    {
+        $sql="DELETE FROM students where email = :email";
+        $param = [ ':email' => $email ];
+
+        $this->set_query($sql, $param);
+        $this->execute_return_status();
+        return true;
+    }
+
     public function get_list_classes()
     {
         $sql = "
@@ -339,12 +353,14 @@ class Model_Admin extends Database
         $this->set_query($sql);
         return $this->load_rows();
     }
-    public function get_list_units($grade_id, $subject_id)
+    public function get_list_units($subject_id)
     {
         $sql = "SELECT DISTINCT unit, COUNT(unit) as total FROM questions 
-        WHERE subject_id = :subject_id and grade_id = :grade_id GROUP BY unit";
+        WHERE subject_id = :subject_id GROUP BY unit";
 
-        $param = [ ':grade_id' => $grade_id, ':subject_id' => $subject_id ];
+        $param = [
+            ':subject_id' => $subject_id
+        ];
 
         $this->set_query($sql, $param);
         return $this->load_rows();
@@ -367,6 +383,15 @@ class Model_Admin extends Database
         subject_id = :subject_id and unit = :unit and level_id = :level_id ORDER BY RAND() LIMIT $limit";
 
         $param = [ ':grade_id' => $grade_id, ':subject_id' => $subject_id, ':unit' => $unit, ':level_id' => $level_id ];
+
+        $this->set_query($sql, $param);
+        return $this->load_rows();
+    }
+    public function list_quest_of_subject($subject_id, $limit)
+    {
+        $sql = "SELECT DISTINCT * FROM questions WHERE subject_id = :subject_id ORDER BY RAND() LIMIT $limit";
+
+        $param = [':subject_id' => $subject_id];
 
         $this->set_query($sql, $param);
         return $this->load_rows();
@@ -459,18 +484,26 @@ class Model_Admin extends Database
     public function get_list_questions_search($keyword, $column_order, $sort_order, $start, $offset)
     {
         $sql = "
-        SELECT DISTINCT questions.question_id,questions.question_content,questions.unit,grades.detail as grade_detail,
-        questions.answer_a,questions.answer_b,questions.answer_c,questions.answer_d,questions.correct_answer,
-        subjects.subject_detail,levels.level_detail FROM `questions`
-        INNER JOIN grades ON grades.grade_id = questions.grade_id
-        INNER JOIN levels ON levels.level_id = questions.level_id
+        SELECT DISTINCT 
+            questions.question_id,
+            questions.question_content,
+            questions.answer_a,
+            questions.answer_b,
+            questions.answer_c,
+            questions.answer_d,
+            questions.correct_answer,
+            subjects.subject_detail
+        FROM `questions`
         INNER JOIN subjects ON subjects.subject_id = questions.subject_id
-        WHERE questions.question_id LIKE '%$keyword%' OR questions.question_content 
-        LIKE '%$keyword%' OR questions.unit LIKE '%$keyword%' OR grades.detail 
-        LIKE '%$keyword%' OR questions.answer_a LIKE '%$keyword%' OR questions.answer_b 
-        LIKE '%$keyword%' OR questions.answer_c LIKE '%$keyword%' OR questions.answer_d 
-        LIKE '%$keyword%' OR questions.correct_answer LIKE '%$keyword%' OR subjects.subject_detail 
-        LIKE '%$keyword%' OR levels.level_detail LIKE '%$keyword%'
+        WHERE 
+            questions.question_id LIKE '%$keyword%' 
+            OR questions.question_content LIKE '%$keyword%' 
+            OR questions.answer_a LIKE '%$keyword%' 
+            OR questions.answer_b LIKE '%$keyword%' 
+            OR questions.answer_c LIKE '%$keyword%' 
+            OR questions.answer_d LIKE '%$keyword%' 
+            OR questions.correct_answer LIKE '%$keyword%' 
+            OR subjects.subject_detail LIKE '%$keyword%' 
         ORDER BY $column_order $sort_order LIMIT $start, $offset";
 
         $this->set_query($sql);
@@ -480,15 +513,17 @@ class Model_Admin extends Database
     {
         $sql = "
         SELECT DISTINCT count(questions.question_id) as total FROM `questions`
-        INNER JOIN grades ON grades.grade_id = questions.grade_id
-        INNER JOIN levels ON levels.level_id = questions.level_id
         INNER JOIN subjects ON subjects.subject_id = questions.subject_id
-        WHERE questions.question_id LIKE '%$keyword%' OR questions.question_content 
-        LIKE '%$keyword%' OR questions.unit LIKE '%$keyword%' OR grades.detail 
-        LIKE '%$keyword%' OR questions.answer_a LIKE '%$keyword%' OR questions.answer_b 
-        LIKE '%$keyword%' OR questions.answer_c LIKE '%$keyword%' OR questions.answer_d 
-        LIKE '%$keyword%' OR questions.correct_answer LIKE '%$keyword%' OR subjects.subject_detail 
-        LIKE '%$keyword%' OR levels.level_detail LIKE '%$keyword%'";
+        WHERE 
+        questions.question_id LIKE '%$keyword%' 
+        OR questions.question_content LIKE '%$keyword%' 
+        OR questions.answer_a LIKE '%$keyword%' 
+        OR questions.answer_b LIKE '%$keyword%' 
+        OR questions.answer_c LIKE '%$keyword%' 
+        OR questions.answer_d LIKE '%$keyword%' 
+        OR questions.correct_answer LIKE '%$keyword%' 
+        OR subjects.subject_detail LIKE '%$keyword%' 
+        ";
 
         $this->set_query($sql);
         return $this->load_row()->total;
@@ -497,9 +532,8 @@ class Model_Admin extends Database
     {
         $sql = "
         SELECT DISTINCT tests.test_code,tests.test_name,tests.password,tests.total_questions,tests.time_to_do,
-        tests.note,grades.detail as grade,
+        tests.note,
         subjects.subject_detail,statuses.status_id,statuses.detail as status FROM `tests`
-        INNER JOIN grades ON grades.grade_id = tests.grade_id
         INNER JOIN subjects ON subjects.subject_id = tests.subject_id
         INNER JOIN statuses ON statuses.status_id = tests.status_id";
 
@@ -528,25 +562,32 @@ class Model_Admin extends Database
         $question_id,
         $subject_id,
         $question_content,
-        $grade_id,
-        $unit,
         $answer_a,
         $answer_b,
         $answer_c,
         $answer_d,
-        $correct_answer,
-        $level_id
+        $correct_answer
     ) {
-        $sql="UPDATE questions set question_content = :question_content, grade_id = :grade_id, unit = :unit, 
-        answer_a = :answer_a, answer_b = :answer_b, answer_c = :answer_c, answer_d = :answer_d, 
-        correct_answer = :correct_answer, subject_id = :subject_id, level_id = :level_id 
-        where question_id = :question_id";
+        $sql="UPDATE questions 
+            SET question_content = :question_content,
+                answer_a = :answer_a, 
+                answer_b = :answer_b, 
+                answer_c = :answer_c, 
+                answer_d = :answer_d, 
+                correct_answer = :correct_answer, 
+                subject_id = :subject_id
+            WHERE question_id = :question_id";
 
-        $param = [ ':question_id' => $question_id, ':subject_id' => $subject_id,
-        ':question_content' => $question_content, ':grade_id' => $grade_id,
-        ':unit' => $unit, ':answer_a' => $answer_a, ':answer_b' => $answer_b,
-        ':answer_c' => $answer_c, ':answer_d' => $answer_d, ':correct_answer' => $correct_answer,
-        ':level_id' => $level_id ];
+        $param = [
+            ':question_id' => $question_id,
+            ':subject_id' => $subject_id,
+            ':question_content' => $question_content,
+            ':answer_a' => $answer_a,
+            ':answer_b' => $answer_b,
+            ':answer_c' => $answer_c,
+            ':answer_d' => $answer_d,
+            ':correct_answer' => $correct_answer,
+        ];
 
         $this->set_query($sql, $param);
         return $this->execute_return_status();
@@ -563,26 +604,27 @@ class Model_Admin extends Database
     public function add_question(
         $subject_id,
         $question_detail,
-        $grade_id,
-        $unit,
         $answer_a,
         $answer_b,
         $answer_c,
         $answer_d,
         $correct_answer,
-        $level_id,
         $sent_by
     ) {
         $sql="INSERT INTO questions 
-        (subject_id,grade_id,unit,question_content,answer_a,answer_b,
-        answer_c,answer_d,correct_answer,level_id,sent_by,status_id) 
-        VALUES (:subject_id,:grade_id,:unit,:question_detail,:answer_a,:answer_b,:answer_c,:answer_d,
-        :correct_answer,:level_id,:sent_by,4)";
+        (subject_id,question_content,answer_a,answer_b,answer_c,answer_d,correct_answer,sent_by,status_id) 
+        VALUES (:subject_id,:question_detail,:answer_a,:answer_b,:answer_c,:answer_d,:correct_answer,:sent_by,4)";
 
-        $param = [ ':subject_id' => $subject_id, ':question_detail' => $question_detail,
-        ':grade_id' => $grade_id, ':unit' => $unit, ':answer_a' => $answer_a,
-        ':answer_b' => $answer_b, ':answer_c' => $answer_c, ':answer_d' => $answer_d,
-        ':correct_answer' => $correct_answer, ':level_id' => $level_id, ':sent_by' => $sent_by ];
+        $param = [ 
+            ':subject_id' => $subject_id, 
+            ':question_detail' => $question_detail,
+            ':answer_a' => $answer_a,
+            ':answer_b' => $answer_b, 
+            ':answer_c' => $answer_c,
+            ':answer_d' => $answer_d,
+            ':correct_answer' => $correct_answer, 
+            ':sent_by' => $sent_by 
+    ];
 
         $this->set_query($sql, $param);
         return $this->execute_return_status();
@@ -808,7 +850,7 @@ class Model_Admin extends Database
     {
         $sql = "SELECT po.*, tp.package_name, tp.test_count, s.name as student_name, s.username as student_username
                 FROM package_orders po 
-                INNER JOIN test_packages tp ON po.package_id = tp.package_id 
+                INNER JOIN package_master tp ON po.package_id = tp.package_id 
                 INNER JOIN students s ON po.student_id = s.student_id
                 ORDER BY po.created_at DESC";
         
@@ -821,7 +863,7 @@ class Model_Admin extends Database
     {
         $sql = "SELECT sp.*, tp.package_name, s.name as student_name, s.username as student_username
                 FROM student_packages sp
-                INNER JOIN test_packages tp ON sp.package_id = tp.package_id 
+                INNER JOIN package_master tp ON sp.package_id = tp.package_id 
                 INNER JOIN students s ON sp.student_id = s.student_id
                 WHERE sp.status = 1
                 ORDER BY sp.purchase_date DESC";
@@ -831,15 +873,16 @@ class Model_Admin extends Database
     }
 
     // Cấp phát lượt thi thủ công cho học sinh
-    public function manual_grant_tests($student_id, $test_count, $note = '')
+    public function manual_grant_tests($student_id, $test_count, $package_id)
     {
         // Tạo gói thi đặc biệt cho admin cấp phát
-        $sql = "INSERT INTO student_packages (student_id, package_id, total_tests, remaining_tests, purchase_date, status) 
-                VALUES (:student_id, 1, :test_count, :test_count, NOW(), 1)";
+        $sql = "INSERT INTO student_packages (`student_id`, `package_id`, `total_tests`, `remaining_tests`, `purchase_date`, `status`) 
+                VALUES (:student_id, :package_id, :test_count, :test_count, NOW(), 1)";
         
         $param = [
             ':student_id' => $student_id,
             ':test_count' => $test_count,
+            ':package_id' => $package_id,
         ];
         
         $this->set_query($sql, $param);
@@ -858,5 +901,32 @@ class Model_Admin extends Database
         
         $this->set_query($sql, $param);
         return $this->execute_return_status();
+    }
+    
+    public function get_setting($key)
+    {
+        $sql = "SELECT DISTINCT * FROM settings WHERE `key` = :key";
+
+        $param = [':key' => $key];
+
+        $this->set_query($sql, $param);
+        return $this->load_row();
+    }
+
+    public function update_settings($setting = [])
+    {
+        foreach($setting as $key => $value) {
+            $sql="UPDATE settings set `value` = :value where `key` = :key";
+    
+            $param = [
+                ':key' => $key,
+                ':value' => $value,
+            ];
+
+            $this->set_query($sql, $param);
+            $this->execute_return_status();
+        }
+
+        return true;
     }
 }

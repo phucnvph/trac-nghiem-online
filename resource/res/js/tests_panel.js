@@ -29,13 +29,12 @@ function show_list_tests(data) {
         tr.append('<td class="">' + data[i].test_name + '</td>');
         tr.append('<td class="">' + data[i].test_code + '</td>');
         tr.append('<td class="">' + data[i].subject_detail + '</td>');
-        tr.append('<td class="">' + data[i].grade + '</td>');
         tr.append('<td class="">' + data[i].total_questions + ' câu hỏi, thời gian ' + data[i].time_to_do + ' phút <br />Ghi chú: ' + data[i].note + '</td>');
         tr.append('<td class="">' + data[i].status + '</td>');
         if(data[i].status_id == 5)
             tr.append('<td class="">' + visibility_button(data[i]) + '<br />' + toggle_status_button(data[i]) + '<br />' + test_detail_button(data[i]) + '<br />' + test_score_button(data[i]) + '</td>');
         else
-            tr.append('<td class="">' + visibility_button(data[i]) + '<br />' + toggle_status_button(data[i]) + '<br />' + accept_permission_button(data[i]) + '<br />' + test_detail_button(data[i]) + '<br />' + test_score_button(data[i]) + '</td>');
+            tr.append('<td class="">' + visibility_button(data[i]) + '<br />' + toggle_status_button(data[i]) + '<br />' + test_detail_button(data[i]) + '<br />' + test_score_button(data[i]) + '</td>');
         list.append(tr);
     }
     $('#table_tests').DataTable({
@@ -194,49 +193,20 @@ function accept_permission(test_code, status_id) {
 //sử dụng hàm ajax thay vì post() để gửi dữ liệu vì trong hàm list_unit có gửi 2 ajax lồng nhau, phải set async = false
 function list_unit() {
     $('#preload').removeClass('hidden');
-    var grade_id = $('#grade_id').val();
-    if (grade_id == null)
-        grade_id = 1;
-    var subject_id = $('#subject_id').val();
-    if (subject_id == null)
-        subject_id = 1;
     var data = {
-        grade_id: grade_id,
-        subject_id: subject_id
+        subject_id: $('#subject_id').val() ?? 1
     }
     var div = $('#list_unit');
     var url = "index.php?action=get_list_units";
     var success = function(result) {
         div.empty();
         var json_data = $.parseJSON(result);
-        if (json_data == "")
+        if (json_data == "") {
             div.append('<span class="title" style="color:red">Chưa có câu hỏi cho khối và môn đã chọn, vui lòng thêm câu hỏi trước khi tạo đề thi, thêm câu hỏi <a href="them-cau-hoi">tại đây</a>!</span>');
-        else {
-            for (var i = 0; i < json_data.length; i++) {
-                var unit_div = $('<div class="input-level row col s12" id="unit_' + json_data[i].unit + '"><span class="col s12"><b>Chương ' + json_data[i].unit + ' (đang có ' + json_data[i].total + ' câu trong cơ sở dữ liệu)</b></span></div>');
-                //Lấy danh sách câu hỏi phân loại theo độ khó của từng chương
-                var get_levels_url = "index.php?action=get_list_levels_of_unit";
-                var unit_data = {
-                    grade_id: grade_id,
-                    subject_id: subject_id,
-                    unit: json_data[i].unit
-                }
-                var get_success = function(res) {
-                    var jsondata = $.parseJSON(res);
-                    for (var j = 0; j < jsondata.length; j++) {
-                        var inp = '<div class="input-field col s3"><label for="unit_' + unit_data.unit + '_level_' + jsondata[j].level_id + '">' + jsondata[j].level_detail + ' (' + jsondata[j].total + ')</label><input type="number" id="unit_' + unit_data.unit + '_level_' + jsondata[j].level_id + '" name="unit_' + unit_data.unit + '_level_' + jsondata[j].level_id + '" required min="0" max="' + jsondata[j].total + '" class="unit" onchange="update_total()"></div>';
-                        unit_div.append(inp)
-                    }
-                }
-                $.ajax({
-                    type: 'POST',
-                    url: get_levels_url,
-                    data: unit_data,
-                    success: get_success,
-                    async: false
-                });
-                div.append(unit_div);
-            }
+            $('#total_questions_number').text(0);
+        } else {
+            $('#total_questions_number').text(json_data[0].total);
+            $('#total_questions').attr('max', json_data[0].total);
         }
         $('#preload').addClass('hidden');
     };

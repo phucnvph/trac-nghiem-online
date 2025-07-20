@@ -56,7 +56,7 @@
 				<p>Xác nhận đăng xuất</p>
 			</div>
 			<div class="modal-footer">
-				<a href="#!" class="modal-action modal-close waves-effect waves-green btn-flat">Không</a>
+				<a href="javascript:;" class="modal-action modal-close waves-effect waves-green btn-flat">Không</a>
 				<a class="modal-action modal-close waves-effect waves-green btn-flat" id="btn-logout">Có</a>
 			</div>
 		</div>
