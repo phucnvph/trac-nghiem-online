@@ -85,4 +85,8 @@ class View_Admin
     {
         include 'res/templates/shared/404.html';
     }
+    public function show_packages_panel($orders, $student_packages, $students)
+    {
+        include 'res/templates/admin/packages_panel.php';
+    }
 }

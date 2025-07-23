@@ -164,7 +164,7 @@ class Model_Student extends Database
     {
         $sql = "
         SELECT DISTINCT tests.test_code,tests.test_name,tests.password,tests.total_questions,tests.time_to_do,
-        tests.note,grades.detail as grade,subjects.subject_detail,statuses.status_id,
+        tests.note,tests.timest, grades.detail as grade,subjects.subject_detail,statuses.status_id,
         statuses.detail as status FROM `tests`
         INNER JOIN grades ON grades.grade_id = tests.grade_id
         INNER JOIN subjects ON subjects.subject_id = tests.subject_id

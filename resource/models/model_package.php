@@ -172,4 +172,13 @@ class Model_Package extends Database
         $total = $this->get_total_remaining_tests($student_id);
         return $total > 0;
     }
+
+    // Đánh dấu đã cộng gói để tránh trùng lặp
+    public function mark_package_added($order_code)
+    {
+        $sql = "UPDATE package_orders SET package_added = 1 WHERE order_code = :order_code";
+        $param = [':order_code' => $order_code];
+        $this->set_query($sql, $param);
+        return $this->execute_return_status();
+    }
 }

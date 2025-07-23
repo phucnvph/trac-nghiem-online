@@ -11,6 +11,9 @@
 require_once 'models/model_student.php';
 require_once 'views/view_student.php';
 
+require_once 'models/model_package.php';
+require_once 'views/view_package.php';
+
 class Controller_Student
 {
     public $info =  array();
@@ -369,5 +372,218 @@ class Controller_Student
         $view->show_head_left($this->info);
         $view->show_404();
         $view->show_foot();
+    }
+
+    // Hiển thị trang mua gói
+    public function show_packages()
+    {
+        $view = new View_Package();
+        $model = new Model_Package();
+        
+        $packages = $model->get_all_packages();
+        $remaining_tests = $model->get_total_remaining_tests($this->info['ID']);
+        
+        $view->show_head_left($this->info);
+        $view->show_packages($packages, $remaining_tests);
+        $view->show_foot();
+    }
+
+    // Hiển thị lịch sử mua gói
+    public function show_order_history()
+    {
+        $view = new View_Package();
+        $model = new Model_Package();
+        
+        $orders = $model->get_student_order_history($this->info['ID']);
+        $student_packages = $model->get_student_packages($this->info['ID']);
+        $remaining_tests = $model->get_total_remaining_tests($this->info['ID']);
+        
+        $view->show_head_left($this->info);
+        $view->show_order_history($orders, $student_packages, $remaining_tests);
+        $view->show_foot();
+    }
+
+    // Tạo đơn hàng
+    public function create_order()
+    {
+        $result = array();
+        
+        $package_id = isset($_POST['package_id']) ? (int)$_POST['package_id'] : 0;
+        
+        if ($package_id <= 0) {
+            $result['status'] = 0;
+            $result['message'] = 'Gói thi không hợp lệ';
+            echo json_encode($result);
+            return;
+        }
+        
+        $model = new Model_Package();
+        $package = $model->get_package_by_id($package_id);
+        
+        if (!$package) {
+            $result['status'] = 0;
+            $result['message'] = 'Gói thi không tồn tại';
+            echo json_encode($result);
+            return;
+        }
+
+        // var_dump($this->info); die;
+        
+        // Tạo mã đơn hàng
+        $order_code = 'PKG' . time() . $this->info['ID'];
+        
+        // Tạo đơn hàng
+        if ($model->create_order($this->info['ID'], $package_id, $order_code, $package->price)) {
+            // Tạo thông tin thanh toán SePay
+            $sepay_data = $this->create_sepay_payment($order_code, $package->price, $package->package_name);
+            
+            $result['status'] = 1;
+            $result['message'] = 'Tạo đơn hàng thành công';
+            $result['order_code'] = $order_code;
+            $result['amount'] = $package->price;
+            $result['package_name'] = $package->package_name;
+            $result['payment_data'] = $sepay_data;
+        } else {
+            $result['status'] = 0;
+            $result['message'] = 'Lỗi tạo đơn hàng';
+        }
+        
+        echo json_encode($result);
+    }
+
+    // Tạo thông tin thanh toán SePay
+    private function create_sepay_payment($order_code, $amount, $package_name)
+    {
+        // Thông tin tài khoản SePay (cần cấu hình trong config)
+        $bank_id = '970432'; // VietinBank
+        $account_number = '0335841799'; // Số tài khoản nhận
+        $account_name = 'TRUONG VAN HUY';
+        
+        // Nội dung chuyển khoản
+        $transfer_content = $order_code;
+        
+        // Tạo link QR SePay
+        $qr_url = "https://img.vietqr.io/image/{$bank_id}-{$account_number}-compact2.jpg?amount={$amount}&addInfo={$transfer_content}&accountName=" . urlencode($account_name);
+        
+        return array(
+            'qr_url' => $qr_url,
+            'bank_name' => 'VPBank',
+            'account_number' => $account_number,
+            'account_name' => $account_name,
+            'amount' => $amount,
+            'transfer_content' => $transfer_content,
+            'order_code' => $order_code
+        );
+    }
+
+    // Xử lý callback từ SePay
+    public function sepay_callback()
+    {
+        $model = new Model_Package();
+        
+        // Lấy dữ liệu từ SePay (thường là POST)
+        $order_code = isset($_POST['order_code']) ? $_POST['order_code'] : '';
+        $status = isset($_POST['status']) ? $_POST['status'] : '';
+        $transaction_id = isset($_POST['transaction_id']) ? $_POST['transaction_id'] : '';
+        
+        if (empty($order_code)) {
+            echo json_encode(['status' => 0, 'message' => 'Thiếu mã đơn hàng']);
+            return;
+        }
+        
+        $order = $model->get_order_by_code($order_code);
+        if (!$order) {
+            echo json_encode(['status' => 0, 'message' => 'Đơn hàng không tồn tại']);
+            return;
+        }
+        
+        if ($status === 'success' || $status === 'completed') {
+            // Cập nhật trạng thái đơn hàng
+            $model->update_order_status($order_code, 'completed', $transaction_id);
+            
+            // Thêm gói thi cho học sinh
+            $model->add_student_package($order->student_id, $order->package_id, $order->test_count);
+            
+            echo json_encode(['status' => 1, 'message' => 'Thanh toán thành công']);
+        } else {
+            // Cập nhật trạng thái thất bại
+            $model->update_order_status($order_code, 'failed', $transaction_id);
+            echo json_encode(['status' => 0, 'message' => 'Thanh toán thất bại']);
+        }
+    }
+
+    // Kiểm tra trạng thái đơn hàng
+    public function check_order_status()
+    {
+        $order_code = isset($_POST['order_code']) ? $_POST['order_code'] : '';
+        
+        if (empty($order_code)) {
+            echo json_encode(['status' => 0, 'message' => 'Thiếu mã đơn hàng']);
+            return;
+        }
+        
+        $model = new Model_Package();
+        $order = $model->get_order_by_code($order_code);
+        
+        if (!$order) {
+            echo json_encode(['status' => 0, 'message' => 'Đơn hàng không tồn tại']);
+            return;
+        }
+
+        // Nếu đơn hàng đã thanh toán thành công, cộng gói cho khách hàng
+        if ($order->payment_status === 'completed' && !$order->package_added) {
+            // Nếu chưa có gói hoặc số lượt thi chưa được cộng đủ, thực hiện cộng gói
+            $model->add_student_package($order->student_id, $order->package_id, $order->test_count);
+
+            // Đánh dấu đã cộng gói để tránh cộng trùng lặp
+            $model->mark_package_added($order_code);
+        }
+        
+        echo json_encode([
+            'status' => 1,
+            'payment_status' => $order->payment_status === 'completed' ? 'Paid' : 'Unpaid',
+            'message' => 'Lấy trạng thái thành công'
+        ]);
+    }
+
+    // Mock xác nhận thanh toán thành công (để test)
+    public function confirm_payment()
+    {
+        $order_code = isset($_POST['order_code']) ? $_POST['order_code'] : '';
+
+        if (empty($order_code)) {
+            echo json_encode(['status' => 0, 'message' => 'Thiếu mã đơn hàng']);
+            return;
+        }
+
+        $model = new Model_Package();
+        $order = $model->get_order_by_code($order_code);
+
+        if (!$order) {
+            echo json_encode(['status' => 0, 'message' => 'Đơn hàng không tồn tại']);
+            return;
+        }
+
+        if ($order->payment_status === 'completed') {
+            echo json_encode(['status' => 1, 'message' => 'Đơn hàng đã được thanh toán']);
+            return;
+        } else {
+            echo json_encode(['status' => 0, 'message' => 'Đơn hàng sẽ được tự động cập nhật']);
+            return;
+        }
+
+        // Cập nhật trạng thái đơn hàng
+        $model->update_order_status($order_code, 'completed', 'MOCK_TXN_' . time());
+
+        // Nếu đơn hàng đã thanh toán thành công và chưa cộng gói, cộng gói cho khách hàng
+        if ($order->payment_status === 'completed' && !$order->package_added) {
+            // Cộng gói cho khách hàng
+            $model->add_student_package($order->student_id, $order->package_id, $order->test_count);
+
+            // Đánh dấu đã cộng gói để tránh cộng trùng lặp
+            $model->mark_package_added($order_code);
+        }
+        
+        echo json_encode(['status' => 1, 'message' => 'Xác nhận thanh toán thành công']);
     }
 }

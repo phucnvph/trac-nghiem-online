@@ -12,8 +12,10 @@ require_once 'config/config.php';
 date_default_timezone_set(Config::TIMEZONE);
 session_start();
 
-error_reporting(0);
-ini_set('display_errors', 0);
+error_reporting(1);
+ini_set('display_errors', 1);
+
+// die;
 
 $is_IM = include 'config/connect.php';
 
@@ -24,6 +26,7 @@ if ($is_IM->INSTALL_MODE) {
     require_once 'controllers/'. $controller .'.php';
     $index = new $controller();
     $action = isset($_GET['action']) ? htmlspecialchars($_GET['action']) : 'show_dashboard';
+
     if (is_callable([$index, $action])) {
         $index->$action();
     } else {
