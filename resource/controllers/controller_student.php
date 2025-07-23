@@ -136,12 +136,26 @@ class Controller_Student
     {
         $result = array();
         $model = new Model_Student();
+        
+        // Kiểm tra lượt thi trước
+        require_once 'models/model_package.php';
+        $package_model = new Model_Package();
+        
+        if (!$package_model->has_test_attempts($this->info['ID'])) {
+            $result['status_value'] = "Bạn đã hết lượt thi. <a href='index.php?action=show_packages'>Mua thêm gói thi</a>";
+            $result['status'] = 0;
+            echo json_encode($result);
+            return;
+        }
+        
         $test_code = isset($_POST['test_code']) ? $_POST['test_code'] : '493205';
         $password = isset($_POST['password']) ? md5($_POST['password']) : 'e10adc3949ba59abbe56e057f20f883e';
         if ($password != $model->get_test($test_code)->password) {
             $result['status_value'] = "Sai mật khẩu";
             $result['status'] = 0;
         } else {
+            // Trừ lượt thi khi bắt đầu làm bài
+            $package_model->use_test_attempt($this->info['ID']);
             $list_quest = $model->get_quest_of_test($test_code);
             foreach ($list_quest as $quest) {
                 $array = array();

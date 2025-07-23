@@ -367,6 +367,66 @@ CREATE TABLE `tests` (
   `timest` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `test_packages`
+--
+
+CREATE TABLE `test_packages` (
+  `package_id` int(11) NOT NULL,
+  `package_name` varchar(255) NOT NULL,
+  `package_description` text,
+  `test_count` int(11) NOT NULL,
+  `price` decimal(10,2) NOT NULL,
+  `status` tinyint(1) DEFAULT '1',
+  `created_at` timestamp DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Dumping data for table `test_packages`
+--
+
+INSERT INTO `test_packages` (`package_id`, `package_name`, `package_description`, `test_count`, `price`, `status`, `created_at`) VALUES
+(1, 'Gói Cơ Bản', 'Gói 10 lượt thi cho học sinh', 10, 50000.00, 1, NOW()),
+(2, 'Gói Tiêu Chuẩn', 'Gói 25 lượt thi với giá ưu đãi', 25, 100000.00, 1, NOW()),
+(3, 'Gói Premium', 'Gói 50 lượt thi tiết kiệm nhất', 50, 180000.00, 1, NOW());
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `student_packages`
+--
+
+CREATE TABLE `student_packages` (
+  `id` int(11) NOT NULL,
+  `student_id` int(11) NOT NULL,
+  `package_id` int(11) NOT NULL,
+  `remaining_tests` int(11) NOT NULL,
+  `total_tests` int(11) NOT NULL,
+  `purchase_date` timestamp DEFAULT CURRENT_TIMESTAMP,
+  `status` tinyint(1) DEFAULT '1'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `package_orders`
+--
+
+CREATE TABLE `package_orders` (
+  `order_id` int(11) NOT NULL,
+  `student_id` int(11) NOT NULL,
+  `package_id` int(11) NOT NULL,
+  `order_code` varchar(50) NOT NULL,
+  `amount` decimal(10,2) NOT NULL,
+  `payment_method` varchar(50) DEFAULT 'sepay',
+  `payment_status` enum('pending','completed','failed','cancelled') DEFAULT 'pending',
+  `sepay_transaction_id` varchar(100) DEFAULT NULL,
+  `created_at` timestamp DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 --
 -- Chỉ mục cho các bảng đã đổ
 --
@@ -521,7 +581,30 @@ ALTER TABLE `tests`
   ADD KEY `grade_id` (`grade_id`);
 
 --
--- AUTO_INCREMENT cho các bảng đã đổ
+-- Indexes for table `test_packages`
+--
+ALTER TABLE `test_packages`
+  ADD PRIMARY KEY (`package_id`);
+
+--
+-- Indexes for table `student_packages`
+--
+ALTER TABLE `student_packages`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `student_id` (`student_id`),
+  ADD KEY `package_id` (`package_id`);
+
+--
+-- Indexes for table `package_orders`
+--
+ALTER TABLE `package_orders`
+  ADD PRIMARY KEY (`order_id`),
+  ADD UNIQUE KEY `order_code` (`order_code`),
+  ADD KEY `student_id` (`student_id`),
+  ADD KEY `package_id` (`package_id`);
+
+--
+-- AUTO_INCREMENT for dumped tables
 --
 
 --
@@ -615,10 +698,22 @@ ALTER TABLE `teacher_notifications`
   MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT cho bảng `tests`
+-- AUTO_INCREMENT for table `test_packages`
 --
-ALTER TABLE `tests`
-  MODIFY `test_code` int(11) NOT NULL AUTO_INCREMENT;
+ALTER TABLE `test_packages`
+  MODIFY `package_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- AUTO_INCREMENT for table `student_packages`
+--
+ALTER TABLE `student_packages`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `package_orders`
+--
+ALTER TABLE `package_orders`
+  MODIFY `order_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- Các ràng buộc cho các bảng đã đổ
@@ -711,6 +806,20 @@ ALTER TABLE `tests`
   ADD CONSTRAINT `fk1` FOREIGN KEY (`subject_id`) REFERENCES `subjects` (`subject_id`),
   ADD CONSTRAINT `fk2` FOREIGN KEY (`status_id`) REFERENCES `statuses` (`status_id`),
   ADD CONSTRAINT `tests_ibfk_1` FOREIGN KEY (`grade_id`) REFERENCES `grades` (`grade_id`);
+
+--
+-- Constraints for table `student_packages`
+--
+ALTER TABLE `student_packages`
+  ADD CONSTRAINT `student_packages_ibfk_1` FOREIGN KEY (`student_id`) REFERENCES `students` (`student_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `student_packages_ibfk_2` FOREIGN KEY (`package_id`) REFERENCES `test_packages` (`package_id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `package_orders`
+--
+ALTER TABLE `package_orders`
+  ADD CONSTRAINT `package_orders_ibfk_1` FOREIGN KEY (`student_id`) REFERENCES `students` (`student_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `package_orders_ibfk_2` FOREIGN KEY (`package_id`) REFERENCES `test_packages` (`package_id`) ON DELETE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
