@@ -18,8 +18,12 @@ class Database
     {
         $connect = include 'connect.php';
         try {
-            $connect_string = 'mysql:host='.$connect->host.'; dbname='.$connect->dbname.'';
+            $connect_string = 'mysql:host='.$connect->host.';port='.$connect->port.';dbname='.$connect->dbname;
+            // $connect_string = 'mysql:host='.$connect->host.'; dbname='.$connect->dbname.'';
+            // var_dump($connect_string, $connect->user, $connect->password);
             $this->db = new PDO($connect_string, $connect->user, $connect->password);
+            // var_dump($this->db);
+
             $this->db->query('set names "utf8"');
         } catch (PDOException $ex) {
             echo $ex->getMessage();
