@@ -76,8 +76,8 @@
                     </div>
                     <div class="row">
                         <div class="col s12 m6">
-                            <p><strong>Ngân hàng:</strong> VPBank</p>
-                            <p><strong>Số tài khoản:</strong> 0335841799</p>
+                            <p><strong>Ngân hàng:</strong> <?=Config::BANK_CODE?></p>
+                            <p><strong>Số tài khoản:</strong> <?=Config::BANK_STK?></p>
                         </div>
                         <div class="col s12 m6">
                             <p><strong>Số tiền:</strong> <span id="qr-amount" class="red-text"></span> VNĐ</p>
@@ -85,9 +85,9 @@
                         </div>
                     </div>
                     <div class="divider"></div>
-                    <p class="grey-text" style="margin-top: 15px;">
+                    <p style="margin-top: 15px;">
                         <i class="material-icons tiny">info</i>
-                        Sau khi chuyển khoản thành công, đơn hàng sẽ được tự động cập nhật.
+                        <b style="color: red;">Sau khi chuyển khoản thành công, đơn hàng sẽ được tự động cập nhật.</b>
                     </p>
                 </div>
             </div>

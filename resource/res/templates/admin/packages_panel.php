@@ -125,12 +125,6 @@
                             </div>
                         </div>
                         <div class="row">
-                            <div class="input-field col s12">
-                                <textarea id="note" name="note" class="materialize-textarea"></textarea>
-                                <label for="note">Ghi Chú</label>
-                            </div>
-                        </div>
-                        <div class="row">
                             <div class="col s12">
                                 <button type="submit" class="btn green waves-effect waves-light">
                                     <i class="material-icons left">add</i>Cấp Phát

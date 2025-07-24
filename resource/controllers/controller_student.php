@@ -8,6 +8,8 @@
  * @link https://github.com/meesudzu/trac-nghiem-online
  */
 
+require_once 'config/config.php';
+
 require_once 'models/model_student.php';
 require_once 'views/view_student.php';
 
@@ -279,9 +281,11 @@ class Controller_Student
         if ($this->info['doing_exam'] == '') {
             $view->show_head_left($this->info);
             $model = new Model_Student();
+            $modelPackage = new Model_Package();
             $scores = $model->get_scores($this->info['ID']);
             $tests = $model->get_list_tests();
-            $view->show_dashboard($tests, $scores);
+            $remaining_tests = $modelPackage->get_total_remaining_tests($this->info['ID']);
+            $view->show_dashboard($tests, $scores, $remaining_tests);
             $view->show_foot();
         } else {
             $model = new Model_Student();
@@ -455,9 +459,9 @@ class Controller_Student
     private function create_sepay_payment($order_code, $amount, $package_name)
     {
         // Thông tin tài khoản SePay (cần cấu hình trong config)
-        $bank_id = '970432'; // VietinBank
-        $account_number = '0335841799'; // Số tài khoản nhận
-        $account_name = 'TRUONG VAN HUY';
+        $bank_id = '';
+        $account_number = Config::BANK_STK; // Số tài khoản nhận
+        $account_name = Config::BANK_CODE;
         
         // Nội dung chuyển khoản
         $transfer_content = $order_code;

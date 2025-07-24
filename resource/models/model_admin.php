@@ -835,12 +835,11 @@ class Model_Admin extends Database
     {
         // Tạo gói thi đặc biệt cho admin cấp phát
         $sql = "INSERT INTO student_packages (student_id, package_id, total_tests, remaining_tests, purchase_date, status) 
-                VALUES (:student_id, 0, :test_count, :test_count, NOW(), 1)";
+                VALUES (:student_id, 1, :test_count, :test_count, NOW(), 1)";
         
         $param = [
             ':student_id' => $student_id,
             ':test_count' => $test_count,
-            ':note' => 'Admin cấp phát thủ công: ' . $note
         ];
         
         $this->set_query($sql, $param);

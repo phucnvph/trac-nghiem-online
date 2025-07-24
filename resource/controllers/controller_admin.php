@@ -1550,14 +1550,14 @@ class Controller_Admin
         $result = array();
         $student_id = isset($_POST['student_id']) ? intval($_POST['student_id']) : 0;
         $test_count = isset($_POST['test_count']) ? intval($_POST['test_count']) : 0;
-        $note = isset($_POST['note']) ? htmlspecialchars($_POST['note']) : '';
-
-        if (empty($student_id) || $test_count <= 0) {
+        $package_type = 'Gói Cơ Bản';
+        
+        if (empty($student_id) || $test_count <= 0 || empty($package_type)) {
             $result['status_value'] = "Vui lòng chọn học sinh và nhập số lượt thi hợp lệ!";
             $result['status'] = 0;
         } else {
             $model = new Model_Admin();
-            $grant = $model->manual_grant_tests($student_id, $test_count, $note);
+            $grant = $model->manual_grant_tests($student_id, $test_count);
             
             if ($grant) {
                 $result['status_value'] = "Cấp phát thành công " . $test_count . " lượt thi!";
@@ -1567,6 +1567,7 @@ class Controller_Admin
                 $result['status'] = 0;
             }
         }
+        
         echo json_encode($result);
     }
 

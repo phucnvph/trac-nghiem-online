@@ -78,6 +78,7 @@
 </div>
 </div>
 
+<?php if ($remaining_tests <= 0) : ?>
 <!-- Modal thông báo hết lượt thi -->
 <div id="no-attempts-modal" class="modal">
     <div class="modal-content">
@@ -97,7 +98,7 @@
         </div>
     </div>
     <div class="modal-footer">
-        <a href="#!" class="modal-close waves-effect waves-red btn-flat">Để sau</a>
+        <!-- <a href="#!" class="modal-close waves-effect waves-red btn-flat">Để sau</a> -->
         <a href="index.php?action=show_packages" class="waves-effect waves-green btn green">
             <i class="material-icons left">shopping_cart</i>Mua Gói Thi
         </a>
@@ -108,15 +109,7 @@
 $(document).ready(function(){
     $('.modal').modal();
 
-    // Kiểm tra lượt thi còn lại và hiển thị popup nếu cần
-    <?php 
-    require_once 'models/model_package.php';
-    $package_model = new Model_Package();
-    $remaining_tests = $package_model->get_total_remaining_tests($info['ID']);
-    if ($remaining_tests <= 0): 
-    ?>
-        // Nếu hết lượt thi, hiển thị modal cảnh báo
-        $('#no-attempts-modal').modal('open');
-    <?php endif; ?>
+	$('#no-attempts-modal').modal('open');
 });
 </script>
+<?php endif ?>
