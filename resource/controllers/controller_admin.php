@@ -385,7 +385,7 @@ class Controller_Admin
     {
         $grade_id = isset($_POST['grade_id']) ? $_POST['grade_id'] : '';
         $subject_id = isset($_POST['subject_id']) ? $_POST['subject_id'] : '';
-        $model = new Model_Admin();
+        $model = new Model_Admin(); 
         echo json_encode($model->get_list_units($grade_id, $subject_id));
     }
     public function get_list_levels_of_unit()
@@ -1525,5 +1525,72 @@ class Controller_Admin
         $view->show_head_left($this->info);
         $view->show_404();
         $view->show_foot();
+    }
+
+    // Hiển thị quản lý gói thi
+    public function show_packages_panel()
+    {
+        $view = new View_Admin();
+        $model = new Model_Admin();
+        
+        $orders = $model->get_all_orders();
+        $student_packages = $model->get_all_student_packages();
+        $students = $model->get_list_students('student_id', 'ASC', 0, 1000);
+        
+        $view->show_head_left($this->info);
+        $view->show_packages_panel($orders, $student_packages, $students);
+        $view->show_foot();
+    }
+
+    // Cấp phát lượt thi thủ công
+    public function manual_grant_tests()
+    {
+        $result = array();
+        $student_id = isset($_POST['student_id']) ? intval($_POST['student_id']) : 0;
+        $test_count = isset($_POST['test_count']) ? intval($_POST['test_count']) : 0;
+        $package_type = 'Gói Cơ Bản';
+        
+        if (empty($student_id) || $test_count <= 0 || empty($package_type)) {
+            $result['status_value'] = "Vui lòng chọn học sinh và nhập số lượt thi hợp lệ!";
+            $result['status'] = 0;
+        } else {
+            $model = new Model_Admin();
+            $grant = $model->manual_grant_tests($student_id, $test_count);
+            
+            if ($grant) {
+                $result['status_value'] = "Cấp phát thành công " . $test_count . " lượt thi!";
+                $result['status'] = 1;
+            } else {
+                $result['status_value'] = "Lỗi! Không thể cấp phát lượt thi!";
+                $result['status'] = 0;
+            }
+        }
+        
+        echo json_encode($result);
+    }
+
+    // Cập nhật lượt thi
+    public function update_student_tests()
+    {
+        $result = array();
+        $package_id = isset($_POST['package_id']) ? intval($_POST['package_id']) : 0;
+        $remaining_tests = isset($_POST['remaining_tests']) ? intval($_POST['remaining_tests']) : 0;
+
+        if (empty($package_id) || $remaining_tests < 0) {
+            $result['status_value'] = "Dữ liệu không hợp lệ!";
+            $result['status'] = 0;
+        } else {
+            $model = new Model_Admin();
+            $update = $model->update_student_tests($package_id, $remaining_tests);
+            
+            if ($update) {
+                $result['status_value'] = "Cập nhật thành công!";
+                $result['status'] = 1;
+            } else {
+                $result['status_value'] = "Lỗi! Không thể cập nhật!";
+                $result['status'] = 0;
+            }
+        }
+        echo json_encode($result);
     }
 }

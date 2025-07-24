@@ -77,3 +77,39 @@
 	</div>
 </div>
 </div>
+
+<?php if ($remaining_tests <= 0) : ?>
+<!-- Modal thông báo hết lượt thi -->
+<div id="no-attempts-modal" class="modal">
+    <div class="modal-content">
+        <h4><i class="material-icons left red-text">warning</i>Hết lượt thi</h4>
+        <p>Bạn đã hết lượt thi. Vui lòng mua thêm gói thi để tiếp tục làm bài.</p>
+        <div class="row">
+            <div class="col s12">
+                <div class="card orange lighten-4">
+                    <div class="card-content">
+                        <span class="card-title"><i class="material-icons left">info</i>Thông tin</span>
+                        <p>• Mỗi lần làm bài thi sẽ tiêu tốn 1 lượt thi</p>
+                        <p>• Bạn có thể mua thêm gói thi với giá ưu đãi</p>
+                        <p>• Lượt thi không bị mất khi thoát giữa chừng</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <!-- <a href="#!" class="modal-close waves-effect waves-red btn-flat">Để sau</a> -->
+        <a href="index.php?action=show_packages" class="waves-effect waves-green btn green">
+            <i class="material-icons left">shopping_cart</i>Mua Gói Thi
+        </a>
+    </div>
+</div>
+
+<script>
+$(document).ready(function(){
+    $('.modal').modal();
+
+	$('#no-attempts-modal').modal('open');
+});
+</script>
+<?php endif ?>

@@ -40,6 +40,8 @@
 			<a href="chat" class="collapsible-header font-color cursor"><i class="material-icons">send</i>Trò Chuyện</a>
 			<a href="thong-bao" class="collapsible-header font-color cursor"><i class="material-icons">send</i>Xem Thông Báo</a>
 			<a href="thong-tin" class="collapsible-header font-color cursor"><i class="material-icons">insert_comment</i>Liên Hệ</a>
+			<a href="index.php?action=show_packages" class="collapsible-header font-color cursor"><i class="material-icons">shopping_cart</i>Mua Gói Thi</a>
+			<a href="index.php?action=show_order_history" class="collapsible-header font-color cursor"><i class="material-icons">receipt</i>Lịch Sử Đơn Hàng</a>
 		</ul>
 	</div>
 	<a data-target="modal1" class="logout modal-trigger waves-effect <?=$_SESSION['sidebar-logout']?>" id="logout">Đăng Xuất</a>

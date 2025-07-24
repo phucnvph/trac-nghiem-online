@@ -19,4 +19,6 @@ class Config
     const RELEASE = "15/05/2020";
     const TIMEZONE = "Asia/Bangkok";
     const APP_URL = "http://localhost/";
+    const BANK_CODE = "VPBank";
+    const BANK_STK = "0123456789";
 }
