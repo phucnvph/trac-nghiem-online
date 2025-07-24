@@ -15,7 +15,7 @@ class View_Student
         require_once 'config/config.php';
         include 'res/templates/student/head_left.php';
     }
-    public function show_dashboard($tests, $scores)
+    public function show_dashboard($tests, $scores, $remaining_tests)
     {
         include 'res/templates/student/dashboard.php';
     }

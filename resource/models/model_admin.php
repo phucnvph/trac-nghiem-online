@@ -802,4 +802,61 @@ class Model_Admin extends Database
         $this->set_query($sql, $param);
         return $this->load_rows();
     }
+
+    // Lấy danh sách tất cả đơn hàng
+    public function get_all_orders()
+    {
+        $sql = "SELECT po.*, tp.package_name, tp.test_count, s.name as student_name, s.username as student_username
+                FROM package_orders po 
+                INNER JOIN test_packages tp ON po.package_id = tp.package_id 
+                INNER JOIN students s ON po.student_id = s.student_id
+                ORDER BY po.created_at DESC";
+        
+        $this->set_query($sql);
+        return $this->load_rows();
+    }
+
+    // Lấy danh sách gói thi của học sinh
+    public function get_all_student_packages()
+    {
+        $sql = "SELECT sp.*, tp.package_name, s.name as student_name, s.username as student_username
+                FROM student_packages sp
+                INNER JOIN test_packages tp ON sp.package_id = tp.package_id 
+                INNER JOIN students s ON sp.student_id = s.student_id
+                WHERE sp.status = 1
+                ORDER BY sp.purchase_date DESC";
+        
+        $this->set_query($sql);
+        return $this->load_rows();
+    }
+
+    // Cấp phát lượt thi thủ công cho học sinh
+    public function manual_grant_tests($student_id, $test_count, $note = '')
+    {
+        // Tạo gói thi đặc biệt cho admin cấp phát
+        $sql = "INSERT INTO student_packages (student_id, package_id, total_tests, remaining_tests, purchase_date, status) 
+                VALUES (:student_id, 1, :test_count, :test_count, NOW(), 1)";
+        
+        $param = [
+            ':student_id' => $student_id,
+            ':test_count' => $test_count,
+        ];
+        
+        $this->set_query($sql, $param);
+        return $this->execute_return_status();
+    }
+
+    // Cập nhật lượt thi cho học sinh
+    public function update_student_tests($package_id, $remaining_tests)
+    {
+        $sql = "UPDATE student_packages SET remaining_tests = :remaining_tests WHERE id = :package_id";
+        
+        $param = [
+            ':package_id' => $package_id,
+            ':remaining_tests' => $remaining_tests
+        ];
+        
+        $this->set_query($sql, $param);
+        return $this->execute_return_status();
+    }
 }

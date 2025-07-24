@@ -103,3 +103,70 @@ function togle_sidebar() {
     var success = function(result) {};
     $.get(url, success);
 }
+
+function check_password() {
+    var password = $("input[name='password']").val();
+    var test_code = $("input[name='test_code']").val();
+    var url = "index.php?action=check_password";
+    var data = {
+        password: password,
+        test_code: test_code
+    };
+    var success = function(result) {
+        var json_data = $.parseJSON(result);
+        if (json_data.status == 1) {
+            window.location.href = "lam-bai-thi";
+        } else {
+            // Kiểm tra nếu lỗi do hết lượt thi
+            if (json_data.status_value.includes("hết lượt thi")) {
+                // Hiển thị modal popup thay vì toast
+                if ($('#no-attempts-modal').length) {
+                    $('#no-attempts-modal').modal('open');
+                } else {
+                    // Nếu modal chưa có, tạo modal động
+                    var modalHTML = `
+                        <div id="no-attempts-modal" class="modal">
+                            <div class="modal-content">
+                                <h4><i class="material-icons left red-text">warning</i>Hết lượt thi</h4>
+                                <p>Bạn đã hết lượt thi. Vui lòng mua thêm gói thi để tiếp tục làm bài.</p>
+                                <div class="row">
+                                    <div class="col s12">
+                                        <div class="card orange lighten-4">
+                                            <div class="card-content">
+                                                <span class="card-title"><i class="material-icons left">info</i>Thông tin</span>
+                                                <p>• Mỗi lần làm bài thi sẽ tiêu tốn 1 lượt thi</p>
+                                                <p>• Bạn có thể mua thêm gói thi với giá ưu đãi</p>
+                                                <p>• Lượt thi không bị mất khi thoát giữa chừng</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <a href="#!" class="modal-close waves-effect waves-red btn-flat">Để sau</a>
+                                <a href="index.php?action=show_packages" class="waves-effect waves-green btn green">
+                                    <i class="material-icons left">shopping_cart</i>Mua Gói Thi
+                                </a>
+                            </div>
+                        </div>
+                    `;
+                    $('body').append(modalHTML);
+                    $('#no-attempts-modal').modal();
+                    $('#no-attempts-modal').modal('open');
+                }
+            } else {
+                M.toast({html: json_data.status_value, classes: 'red'});
+            }
+        }
+        $("#password_checking").fadeOut();
+        $('.wave').removeClass('show-wave');
+    };
+    var error = function() {
+        $("#password_checking").fadeOut();
+        $('.wave').removeClass('show-wave');
+        M.toast({html: 'Lỗi kết nối!', classes: 'red'});
+    };
+    $("#password_checking").fadeIn();
+    $('.wave').addClass('show-wave');
+    $.post(url, data, success).fail(error);
+}

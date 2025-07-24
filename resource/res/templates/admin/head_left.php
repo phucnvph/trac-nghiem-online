@@ -32,7 +32,7 @@
 		<div class="card reset-margin">
 			<div class="card-image">
 				<img src="upload/avatar/<?=$info['avatar']?>" id="user-avatar" style="width: 220px; height: 155px;">
-                    
+
                 </style>
 				<span class="card-title" style="padding: 20px; "><i  id="user-name"><?=$info['name']?></i>
 					<a href="trang-ca-nhan" class="cursor blue-text text-darken-2"><i class="material-icons">create</i></a>
@@ -52,6 +52,7 @@
 						<a href="quan-ly-mon-hoc" class="menu-list cursor">Quản Lý Môn</a>
 						<a href="quan-ly-ngan-hang-cau-hoi" class="menu-list cursor">Quản Lý Câu Hỏi</a>
 						<a href="quan-ly-de-thi" class="menu-list cursor">Quản Lý Bài Kiểm Tra</a>
+						<a href="quan-ly-goi-thi" class="menu-list cursor">Quản Lý Gói Thi</a>
 					</div>
 				</li>
 				<a href="gui-thong-bao" class="collapsible-header font-color"><i class="material-icons">send</i>Gửi Thông Báo</a>
