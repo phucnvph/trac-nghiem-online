@@ -10,6 +10,7 @@
 	<link rel="stylesheet" href="res/css/style.min.css">
 	<link rel="stylesheet" href="res/css/font-awesome.css">
 	<link rel="stylesheet" href="res/css/materialize.min.css">
+	<link rel="stylesheet" href="res/libs/DataTables/css/jquery.dataTables.css">
 	<script src="res/js/jquery.js"></script>
 	<script src="res/js/materialize.min.js"></script>
     <script src='res/libs/MathJax/MathJax.js?config=TeX-MML-AM_CHTML' async></script>
@@ -39,9 +40,9 @@
 			<a href="/" class="collapsible-header font-color cursor"><i class="material-icons">library_books</i>Làm Bài</a>
 			<a href="chat" class="collapsible-header font-color cursor"><i class="material-icons">send</i>Trò Chuyện</a>
 			<a href="thong-bao" class="collapsible-header font-color cursor"><i class="material-icons">send</i>Xem Thông Báo</a>
+			<a href="danh-sach-goi" class="collapsible-header font-color cursor"><i class="material-icons">shopping_cart</i>Mua Gói Thi</a>
+			<a href="lich-su-don-hang" class="collapsible-header font-color cursor"><i class="material-icons">receipt</i>Lịch Sử Đơn Hàng</a>
 			<a href="thong-tin" class="collapsible-header font-color cursor"><i class="material-icons">insert_comment</i>Liên Hệ</a>
-			<a href="index.php?action=show_packages" class="collapsible-header font-color cursor"><i class="material-icons">shopping_cart</i>Mua Gói Thi</a>
-			<a href="index.php?action=show_order_history" class="collapsible-header font-color cursor"><i class="material-icons">receipt</i>Lịch Sử Đơn Hàng</a>
 		</ul>
 	</div>
 	<a data-target="modal1" class="logout modal-trigger waves-effect <?=$_SESSION['sidebar-logout']?>" id="logout">Đăng Xuất</a>
@@ -51,7 +52,7 @@
 			<p>Xác nhận đăng xuất</p>
 		</div>
 		<div class="modal-footer">
-			<a href="#!" class="modal-action modal-close waves-effect waves-green btn-flat">Không</a>
+			<a href="javascript:;" class="modal-action modal-close waves-effect waves-green btn-flat">Không</a>
 			<a class="modal-action modal-close waves-effect waves-green btn-flat" id="btn-logout">Có</a>
 		</div>
 	</div>

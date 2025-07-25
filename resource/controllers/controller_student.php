@@ -19,10 +19,12 @@ require_once 'views/view_package.php';
 class Controller_Student
 {
     public $info =  array();
+    public $user_info;
     
     public function __construct()
     {
         $user_info = $this->profiles();
+        $this->user_info = $user_info;
         $this->info['ID'] = $user_info->ID;
         $this->update_last_login($this->info['ID']);
         $this->info['username'] = $user_info->username;
@@ -144,10 +146,13 @@ class Controller_Student
         
         // Kiểm tra lượt thi trước
         require_once 'models/model_package.php';
-        $package_model = new Model_Package();
+        $modelPackage = new Model_Package();
+
+        $remaining_tests = $modelPackage->get_total_remaining_tests($this->info['ID']);
+        $remaining_tests += $this->user_info->remaining_number;
         
-        if (!$package_model->has_test_attempts($this->info['ID'])) {
-            $result['status_value'] = "Bạn đã hết lượt thi. <a href='index.php?action=show_packages'>Mua thêm gói thi</a>";
+        if (!$remaining_tests) {
+            $result['status_value'] = "Bạn đã hết lượt thi. <a href='danh-sach-goi'>Mua thêm gói thi</a>";
             $result['status'] = 0;
             echo json_encode($result);
             return;
@@ -160,7 +165,11 @@ class Controller_Student
             $result['status'] = 0;
         } else {
             // Trừ lượt thi khi bắt đầu làm bài
-            $package_model->use_test_attempt($this->info['ID']);
+            $minusPackage = $modelPackage->use_test_attempt($this->info['ID']);
+            if (!$minusPackage) {
+                $model->minusRemaining($this->info['ID']);
+            }
+
             $list_quest = $model->get_quest_of_test($test_code);
             foreach ($list_quest as $quest) {
                 $array = array();
@@ -285,6 +294,7 @@ class Controller_Student
             $scores = $model->get_scores($this->info['ID']);
             $tests = $model->get_list_tests();
             $remaining_tests = $modelPackage->get_total_remaining_tests($this->info['ID']);
+            $remaining_tests += $this->user_info->remaining_number;
             $view->show_dashboard($tests, $scores, $remaining_tests);
             $view->show_foot();
         } else {
@@ -334,10 +344,10 @@ class Controller_Student
             $test_code = htmlspecialchars($_GET['test_code']);
             $score = $model->get_score($this->info['ID'], $test_code);
             $test_status = $model->get_test($test_code)->status_id;
-            if ($test_status != 5) {
-                $result = null;
-            } else {
+            if ($test_status == 1) {
                 $result = $model->get_result_quest($test_code, $this->info['ID']);
+            } else {
+                $result = null;
             }
             if ($score) {
                 $view->show_head_left($this->info);
@@ -386,6 +396,7 @@ class Controller_Student
         
         $packages = $model->get_all_packages();
         $remaining_tests = $model->get_total_remaining_tests($this->info['ID']);
+        $remaining_tests += $this->user_info->remaining_number;
         
         $view->show_head_left($this->info);
         $view->show_packages($packages, $remaining_tests);
@@ -430,90 +441,23 @@ class Controller_Student
             echo json_encode($result);
             return;
         }
-
-        // var_dump($this->info); die;
         
         // Tạo mã đơn hàng
         $order_code = 'PKG' . time() . $this->info['ID'];
         
         // Tạo đơn hàng
         if ($model->create_order($this->info['ID'], $package_id, $order_code, $package->price)) {
-            // Tạo thông tin thanh toán SePay
-            $sepay_data = $this->create_sepay_payment($order_code, $package->price, $package->package_name);
-            
             $result['status'] = 1;
             $result['message'] = 'Tạo đơn hàng thành công';
             $result['order_code'] = $order_code;
             $result['amount'] = $package->price;
             $result['package_name'] = $package->package_name;
-            $result['payment_data'] = $sepay_data;
         } else {
             $result['status'] = 0;
             $result['message'] = 'Lỗi tạo đơn hàng';
         }
         
         echo json_encode($result);
-    }
-
-    // Tạo thông tin thanh toán SePay
-    private function create_sepay_payment($order_code, $amount, $package_name)
-    {
-        // Thông tin tài khoản SePay (cần cấu hình trong config)
-        $bank_id = '';
-        $account_number = Config::BANK_STK; // Số tài khoản nhận
-        $account_name = Config::BANK_CODE;
-        
-        // Nội dung chuyển khoản
-        $transfer_content = $order_code;
-        
-        // Tạo link QR SePay
-        $qr_url = "https://img.vietqr.io/image/{$bank_id}-{$account_number}-compact2.jpg?amount={$amount}&addInfo={$transfer_content}&accountName=" . urlencode($account_name);
-        
-        return array(
-            'qr_url' => $qr_url,
-            'bank_name' => 'VPBank',
-            'account_number' => $account_number,
-            'account_name' => $account_name,
-            'amount' => $amount,
-            'transfer_content' => $transfer_content,
-            'order_code' => $order_code
-        );
-    }
-
-    // Xử lý callback từ SePay
-    public function sepay_callback()
-    {
-        $model = new Model_Package();
-        
-        // Lấy dữ liệu từ SePay (thường là POST)
-        $order_code = isset($_POST['order_code']) ? $_POST['order_code'] : '';
-        $status = isset($_POST['status']) ? $_POST['status'] : '';
-        $transaction_id = isset($_POST['transaction_id']) ? $_POST['transaction_id'] : '';
-        
-        if (empty($order_code)) {
-            echo json_encode(['status' => 0, 'message' => 'Thiếu mã đơn hàng']);
-            return;
-        }
-        
-        $order = $model->get_order_by_code($order_code);
-        if (!$order) {
-            echo json_encode(['status' => 0, 'message' => 'Đơn hàng không tồn tại']);
-            return;
-        }
-        
-        if ($status === 'success' || $status === 'completed') {
-            // Cập nhật trạng thái đơn hàng
-            $model->update_order_status($order_code, 'completed', $transaction_id);
-            
-            // Thêm gói thi cho học sinh
-            $model->add_student_package($order->student_id, $order->package_id, $order->test_count);
-            
-            echo json_encode(['status' => 1, 'message' => 'Thanh toán thành công']);
-        } else {
-            // Cập nhật trạng thái thất bại
-            $model->update_order_status($order_code, 'failed', $transaction_id);
-            echo json_encode(['status' => 0, 'message' => 'Thanh toán thất bại']);
-        }
     }
 
     // Kiểm tra trạng thái đơn hàng

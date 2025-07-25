@@ -15,7 +15,7 @@ class Model_Package extends Database
     // Lấy danh sách tất cả gói thi
     public function get_all_packages()
     {
-        $sql = "SELECT * FROM test_packages WHERE status = 1 ORDER BY price ASC";
+        $sql = "SELECT * FROM package_master WHERE status = 1 ORDER BY price ASC";
         $this->set_query($sql);
         return $this->load_rows();
     }
@@ -23,7 +23,7 @@ class Model_Package extends Database
     // Lấy thông tin gói thi theo ID
     public function get_package_by_id($package_id)
     {
-        $sql = "SELECT * FROM test_packages WHERE package_id = :package_id AND status = 1";
+        $sql = "SELECT * FROM package_master WHERE package_id = :package_id AND status = 1";
         $param = [':package_id' => $package_id];
         $this->set_query($sql, $param);
         return $this->load_row();
@@ -65,7 +65,7 @@ class Model_Package extends Database
     {
         $sql = "SELECT po.*, tp.package_name, tp.test_count 
                 FROM package_orders po 
-                INNER JOIN test_packages tp ON po.package_id = tp.package_id 
+                INNER JOIN package_master tp ON po.package_id = tp.package_id 
                 WHERE po.order_code = :order_code";
         $param = [':order_code' => $order_code];
         $this->set_query($sql, $param);
@@ -111,7 +111,7 @@ class Model_Package extends Database
     {
         $sql = "SELECT sp.*, tp.package_name, tp.package_description 
                 FROM student_packages sp 
-                INNER JOIN test_packages tp ON sp.package_id = tp.package_id 
+                INNER JOIN package_master tp ON sp.package_id = tp.package_id 
                 WHERE sp.student_id = :student_id AND sp.status = 1 AND sp.remaining_tests > 0
                 ORDER BY sp.purchase_date DESC";
         $param = [':student_id' => $student_id];
@@ -158,7 +158,7 @@ class Model_Package extends Database
     {
         $sql = "SELECT po.*, tp.package_name, tp.test_count 
                 FROM package_orders po 
-                INNER JOIN test_packages tp ON po.package_id = tp.package_id 
+                INNER JOIN package_master tp ON po.package_id = tp.package_id 
                 WHERE po.student_id = :student_id 
                 ORDER BY po.created_at DESC";
         $param = [':student_id' => $student_id];
@@ -169,8 +169,7 @@ class Model_Package extends Database
     // Kiểm tra học sinh có đủ lượt thi không
     public function has_test_attempts($student_id)
     {
-        $total = $this->get_total_remaining_tests($student_id);
-        return $total > 0;
+        return $this->get_total_remaining_tests($student_id);
     }
 
     // Đánh dấu đã cộng gói để tránh trùng lặp

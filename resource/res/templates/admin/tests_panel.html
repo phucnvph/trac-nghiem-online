@@ -12,7 +12,6 @@
                     <th class="">Tên</th>
                     <th class="">Mã Đề</th>
                     <th class="">Môn</th>
-                    <th class="">Khối</th>
                     <th class="">Thông Tin</th>
                     <th class="">Trạng Thái</th>
                     <th class=""><i class="material-icons">settings</i></th>
@@ -35,28 +34,22 @@
                             <label for="password">Mật khẩu đề thi</label>
                             <input type="password" id="password" name="password" required>
                         </div>
-                        <div class="input-field">
-                            <select name="grade_id" id="grade_id" onchange="list_unit()">
-                            </select>
-                            <label>Khối</label>
-                        </div>
                         <span class="title hidden" id="subject_error" style="color: red">Cần tạo môn học trước khi thêm câu hỏi, tạo <a href="quan-ly-lop">tại đây</a></span>
                         <div class="input-field">
                             <select name="subject_id" id="subject_id" onchange="list_unit()">
                             </select>
                             <label>Môn</label>
                         </div>
-                        <b style="font-size: 18px;">Nhập số câu hỏi từng chương sẽ có trong đề thi:</b><br><br>
                         <div id="list_unit">
 
                         </div>
-                        <b style="font-size: 18px;">Tổng số câu hỏi (sẽ tự động cập nhật sau khi nhập số câu hỏi cho từng chương):</b>
+                        <b style="font-size: 18px;">Tổng số câu hỏi hiện có là: <span id="total_questions_number"></span></b>
                         <div class="input-field">
-                            <input type="number" id="total_questions" name="total_questions" readonly value="0">
+                            <input type="number" id="total_questions" name="total_questions" min="1" max="9999999999" placeholder="Số lượng câu hỏi" required pattern="^(0|[1-9][0-9]*)(\.[0-9]+)?$">
                         </div>
                         <div class="input-field">
                             <label for="time_to_do">Thời gian làm bài (phút)</label>
-                            <input type="number" id="time_to_do" name="time_to_do" required>
+                            <input type="number" id="time_to_do" name="time_to_do" min="1" required>
                         </div>
                         <div class="input-field">
                             <label for="note">Ghi chú thêm</label>
