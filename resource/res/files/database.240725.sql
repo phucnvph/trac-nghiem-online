@@ -1,49 +1,16 @@
+-- =====================================================================================
+-- SCRIPT TỰ ĐỘNG CẬP NHẬT HOẶC TẠO MỚI CSDL
+-- Script này sẽ:
+-- 1. Tạo các bảng mới nếu chúng chưa tồn tại.
+-- 2. Chỉnh sửa các bảng đã có để cập nhật cấu trúc.
+-- 3. Thêm hoặc cập nhật dữ liệu một cách an toàn.
+-- =====================================================================================
+
 -- --------------------------------------------------------
--- Host:                         127.0.0.1
--- Server version:               8.0.42 - MySQL Community Server - GPL
--- Server OS:                    Win64
--- HeidiSQL Version:             12.10.0.7000
+-- Phần 1: TẠO CÁC BẢNG HOÀN TOÀN MỚI
 -- --------------------------------------------------------
 
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET NAMES utf8 */;
-/*!50503 SET NAMES utf8mb4 */;
-/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
-/*!40103 SET TIME_ZONE='+00:00' */;
-/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
-/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
-/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
-
--- Cấu trúc mới cho bảng `students` (cập nhật cột `last_login`)
--- LƯU Ý: Đây là cấu trúc CREATE TABLE đầy đủ. Trong thực tế, bạn có thể dùng ALTER TABLE.
-DROP TABLE IF EXISTS `students`;
-CREATE TABLE IF NOT EXISTS `students` (
-  `student_id` int NOT NULL AUTO_INCREMENT,
-  `username` varchar(16) NOT NULL,
-  `email` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_unicode_ci DEFAULT NULL,
-  `password` varchar(32) NOT NULL,
-  `name` varchar(50) NOT NULL,
-  `permission` int DEFAULT '3',
-  `class_id` int NOT NULL,
-  `last_login` datetime DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
-  `gender_id` int NOT NULL DEFAULT '1',
-  `avatar` varchar(255) DEFAULT 'avatar-default.jpg',
-  `birthday` date NOT NULL,
-  `doing_exam` int DEFAULT NULL,
-  `starting_time` datetime DEFAULT NULL,
-  `time_remaining` varchar(11) DEFAULT NULL,
-  PRIMARY KEY (`student_id`),
-  UNIQUE KEY `username` (`username`),
-  UNIQUE KEY `email` (`email`),
-  KEY `n9` (`class_id`),
-  KEY `n11` (`permission`),
-  KEY `students_gender_id` (`gender_id`),
-  CONSTRAINT `n11` FOREIGN KEY (`permission`) REFERENCES `permissions` (`permission`),
-  CONSTRAINT `n9` FOREIGN KEY (`class_id`) REFERENCES `classes` (`class_id`),
-  CONSTRAINT `students_gender_id` FOREIGN KEY (`gender_id`) REFERENCES `genders` (`gender_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb3;
-
--- Bảng mới `test_packages`
+-- Bảng: test_packages
 CREATE TABLE IF NOT EXISTS `test_packages` (
   `package_id` int NOT NULL AUTO_INCREMENT,
   `package_name` varchar(255) NOT NULL,
@@ -53,15 +20,24 @@ CREATE TABLE IF NOT EXISTS `test_packages` (
   `status` tinyint(1) DEFAULT '1',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`package_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- Dữ liệu cho bảng `test_packages`
-INSERT INTO `test_packages` (`package_id`, `package_name`, `package_description`, `test_count`, `price`, `status`, `created_at`) VALUES
-	(1, 'Gói Cơ Bản', 'Gói 10 lượt thi cho học sinh', 10, 2000, 1, '2025-07-23 16:29:30'),
-	(2, 'Gói Tiêu Chuẩn', 'Gói 25 lượt thi với giá ưu đãi', 25, 3000, 1, '2025-07-23 16:29:30'),
-	(3, 'Gói Premium', 'Gói 50 lượt thi tiết kiệm nhất', 50, 5000, 1, '2025-07-23 16:29:30');
+-- Bảng: student_packages
+CREATE TABLE IF NOT EXISTS `student_packages` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `student_id` int NOT NULL,
+  `package_id` int NOT NULL,
+  `remaining_tests` int NOT NULL,
+  `total_tests` int NOT NULL,
+  `purchase_date` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `status` tinyint(1) DEFAULT '1',
+  PRIMARY KEY (`id`),
+  KEY `student_id` (`student_id`),
+  KEY `package_id` (`package_id`)
+  -- Ràng buộc (CONSTRAINT) sẽ được thêm ở cuối nếu cần
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- Bảng mới `package_orders`
+-- Bảng: package_orders
 CREATE TABLE IF NOT EXISTS `package_orders` (
   `order_id` int NOT NULL AUTO_INCREMENT,
   `student_id` int NOT NULL,
@@ -77,21 +53,19 @@ CREATE TABLE IF NOT EXISTS `package_orders` (
   PRIMARY KEY (`order_id`),
   UNIQUE KEY `order_code` (`order_code`),
   KEY `student_id` (`student_id`),
-  KEY `package_id` (`package_id`),
-  CONSTRAINT `package_orders_ibfk_1` FOREIGN KEY (`student_id`) REFERENCES `students` (`student_id`) ON DELETE CASCADE,
-  CONSTRAINT `package_orders_ibfk_2` FOREIGN KEY (`package_id`) REFERENCES `test_packages` (`package_id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=35 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  KEY `package_id` (`package_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- Bảng mới `sepay_transactions`
+-- Bảng: sepay_transactions
 CREATE TABLE IF NOT EXISTS `sepay_transactions` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `gateway` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `transaction_date` timestamp NULL DEFAULT NULL,
   `account_number` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `sub_account` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `amount_in` decimal(15,2) DEFAULT '0.00',
-  `amount_out` decimal(15,2) DEFAULT '0.00',
-  `accumulated` decimal(15,2) DEFAULT '0.00',
+  `amount_in` decimal(15,0) DEFAULT '0',
+  `amount_out` decimal(15,0) DEFAULT '0',
+  `accumulated` decimal(15,0) DEFAULT '0',
   `code` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `transaction_content` text COLLATE utf8mb4_unicode_ci,
   `reference_number` varchar(200) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
@@ -99,48 +73,56 @@ CREATE TABLE IF NOT EXISTS `sepay_transactions` (
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `id` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- Bảng mới `student_packages`
-CREATE TABLE IF NOT EXISTS `student_packages` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `student_id` int NOT NULL,
-  `package_id` int NOT NULL,
-  `remaining_tests` int NOT NULL,
-  `total_tests` int NOT NULL,
-  `purchase_date` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  `status` tinyint(1) DEFAULT '1',
-  PRIMARY KEY (`id`),
-  KEY `student_id` (`student_id`),
-  KEY `package_id` (`package_id`),
-  CONSTRAINT `student_packages_ibfk_1` FOREIGN KEY (`student_id`) REFERENCES `students` (`student_id`) ON DELETE CASCADE,
-  CONSTRAINT `student_packages_ibfk_2` FOREIGN KEY (`package_id`) REFERENCES `test_packages` (`package_id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
--- Cấu trúc mới cho bảng `student_test_detail` (thêm cột `ID`)
-DROP TABLE IF EXISTS `student_test_detail`;
-CREATE TABLE IF NOT EXISTS `student_test_detail` (
-  `ID` int NOT NULL,
-  `student_id` int NOT NULL,
-  `test_code` int NOT NULL,
-  `question_id` int NOT NULL,
-  `answer_a` text COLLATE utf8mb3_unicode_ci,
-  `answer_b` text COLLATE utf8mb3_unicode_ci,
-  `answer_c` text COLLATE utf8mb3_unicode_ci,
-  `answer_d` text COLLATE utf8mb3_unicode_ci,
-  `student_answer` text COLLATE utf8mb3_unicode_ci,
-  `timest` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`student_id`,`test_code`,`question_id`),
-  KEY `fk4` (`test_code`),
-  KEY `fk6` (`question_id`),
-  CONSTRAINT `fk4` FOREIGN KEY (`test_code`) REFERENCES `tests` (`test_code`),
-  CONSTRAINT `fk6` FOREIGN KEY (`question_id`) REFERENCES `questions` (`question_id`),
-  CONSTRAINT `fk9` FOREIGN KEY (`student_id`) REFERENCES `students` (`student_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
-/*!40103 SET TIME_ZONE=IFNULL(@OLD_TIME_ZONE, 'system') */;
-/*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;
-/*!40014 SET FOREIGN_KEY_CHECKS=IFNULL(@OLD_FOREIGN_KEY_CHECKS, 1) */;
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40111 SET SQL_NOTES=IFNULL(@OLD_SQL_NOTES, 1) */;
+-- --------------------------------------------------------
+-- Phần 2: CHỈNH SỬA CÁC BẢNG ĐÃ TỒN TẠI
+-- --------------------------------------------------------
+
+-- Cập nhật bảng: students - Sửa đổi cột `last_login`
+ALTER TABLE `students`
+MODIFY COLUMN `last_login` datetime DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP;
+
+-- Cập nhật bảng: teachers - Sửa đổi cột `last_login`
+ALTER TABLE `teachers`
+MODIFY COLUMN `last_login` datetime NOT NULL DEFAULT (now());
+
+-- --------------------------------------------------------
+-- Phần 3: THÊM HOẶC CẬP NHẬT DỮ LIỆU
+-- --------------------------------------------------------
+
+-- Dữ liệu cho bảng `test_packages`
+INSERT INTO `test_packages` (`package_id`, `package_name`, `package_description`, `test_count`, `price`, `status`) VALUES
+(1, 'Gói Cơ Bản', 'Gói 10 lượt thi cho học sinh', 10, 2000, 1),
+(2, 'Gói Tiêu Chuẩn', 'Gói 25 lượt thi với giá ưu đãi', 25, 2500, 1),
+(3, 'Gói Premium', 'Gói 50 lượt thi tiết kiệm nhất', 50, 2600, 1)
+ON DUPLICATE KEY UPDATE
+`package_name` = VALUES(`package_name`),
+`package_description` = VALUES(`package_description`),
+`test_count` = VALUES(`test_count`),
+`price` = VALUES(`price`),
+`status` = VALUES(`status`);
+
+-- Ví dụ: Thêm một giáo viên mới với teacher_id = 2
+INSERT INTO `teachers` (`username`, `name`)
+VALUES ('giaovien_moi_2', 'Nguyễn Văn A');
+
+-- Thêm một lớp học với class_id = 1 trước khi thêm học sinh
+INSERT INTO `classes` (`grade_id`, `class_name`, `teacher_id`) VALUES
+(1, 'Lớp 1A', 1);
+
+-- Dữ liệu cho bảng `students` (ví dụ, nếu bạn muốn cập nhật)
+-- Giả sử `student_id` là khóa chính
+INSERT INTO `students` (`student_id`, `username`, `email`, `password`, `name`, `permission`, `class_id`, `gender_id`, `avatar`, `birthday`) VALUES
+(1, '2018hs40', '2018hs40@gmail.com', '827ccb0eea8a706c4c34a16891f84e7b', 'Nguyễn Văn A', 3, 1, 1, 'avatar-default.jpg', '1997-01-19'),
+(2, '2018hs41', '2018hs41@gmail.com', 'e10adc3949ba59abbe56e057f20f883e', 'Nguyễn Thị B', 3, 1, 3, 'avatar-default.jpg', '1997-01-20')
+ON DUPLICATE KEY UPDATE
+`username` = VALUES(`username`),
+`email` = VALUES(`email`),
+`password` = VALUES(`password`),
+`name` = VALUES(`name`);
+
+-- Thêm dữ liệu cho các bảng mới khác nếu có...
+-- (Dữ liệu cho `package_orders`, `sepay_transactions`, `student_packages` có tính giao dịch cao,
+-- thường được tạo ra bởi ứng dụng thay vì chèn thủ công như thế này)
