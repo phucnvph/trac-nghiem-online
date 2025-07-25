@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS `package_master` (
 
 -- Dữ liệu cho bảng `package_master`
 INSERT INTO `package_master` (`package_id`, `package_name`, `package_description`, `test_count`, `price`, `status`) VALUES
-(1, 'Gói Cơ Bản',     'Gói 10 lượt thi cho học sinh',   10, 2000, 1),
+(1, 'Gói Cơ Bản',     'Gói 10 lượt thi cho thành viên', 10, 2000, 1),
 (2, 'Gói Tiêu Chuẩn', 'Gói 25 lượt thi với giá ưu đãi', 25, 3000, 1),
 (3, 'Gói Premium',    'Gói 50 lượt thi tiết kiệm nhất', 50, 5000, 1);
 

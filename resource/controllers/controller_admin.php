@@ -714,7 +714,7 @@ class Controller_Admin
         $result = array();
         $name = isset($_POST['name']) ? Htmlspecialchars(addslashes($_POST['name'])) : '';
         $username = isset($_POST['username']) ? Htmlspecialchars(addslashes($_POST['username'])) : '';
-        $class_id = isset($_POST['class_id']) ? Htmlspecialchars(addslashes($_POST['class_id'])) : '1';
+        $class_id = 1;
         $email = isset($_POST['email']) ? Htmlspecialchars(addslashes($_POST['email'])) : '';
         $birthday = isset($_POST['birthday']) ? Htmlspecialchars(addslashes($_POST['birthday'])) : '';
         $gender = isset($_POST['gender']) ? Htmlspecialchars(addslashes($_POST['gender'])) : '';
@@ -739,7 +739,7 @@ class Controller_Admin
     {
         $inputFileType = 'Xlsx';
         $result = array();
-        $class_id = isset($_POST['class_id']) ? Htmlspecialchars(addslashes($_POST['class_id'])) : '';
+        $class_id = 1;
         $reader = IOFactory::createReader($inputFileType);
         move_uploaded_file($_FILES['file']['tmp_name'], $_FILES['file']['name']);
         $spreadsheet = $reader->load($_FILES['file']['name']);
@@ -747,7 +747,7 @@ class Controller_Admin
         unlink($_FILES['file']['name']);
         $count = 0;
         $err_list = '';
-        for ($i = 4; $i < count($sheetData); $i++) {
+        for ($i = 4; $i <= count($sheetData); $i++) {
             if ($sheetData[$i]['A'] == '') {
                 continue;
             }
@@ -1321,14 +1321,12 @@ class Controller_Admin
         $sheet->setCellValue('A3', 'STT');
         $sheet->setCellValue('B3', 'Tên');
         $sheet->setCellValue('C3', 'Tài Khoản');
-        $sheet->setCellValue('D3', 'Lớp');
-        $sheet->setCellValue('E3', 'Điểm');
+        $sheet->setCellValue('D3', 'Điểm');
         for ($i = 0; $i < count($scores); $i++) {
             $sheet->setCellValue('A'.($i+4), $i+1);
             $sheet->setCellValue('B'.($i+4), $scores[$i]->name);
             $sheet->setCellValue('C'.($i+4), $scores[$i]->username);
-            $sheet->setCellValue('D'.($i+4), $scores[$i]->class_name);
-            $sheet->setCellValue('E'.($i+4), $scores[$i]->score_number);
+            $sheet->setCellValue('D'.($i+4), $scores[$i]->score_number);
         }
         //Output File
         header('Content-Type: application/vnd.ms-excel');

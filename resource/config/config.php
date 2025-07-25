@@ -25,8 +25,8 @@ class Config
 
     const MAIL_DRIVER = "smtp";
     const MAIL_HOST = "sandbox.smtp.mailtrap.io";
-    const MAIL_PORT = "2525";
-    const MAIL_USERNAME = "9ace2486af6db7";
-    const MAIL_PASSWORD = "28db8d02ae9366";
+    const MAIL_PORT = 2525;
+    const MAIL_USERNAME = "3148f1baadc370";
+    const MAIL_PASSWORD = "7c4d4d7ae78854";
     const MAIL_ENCRYPTION = "tls";
 }

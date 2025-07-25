@@ -255,43 +255,46 @@ class Controller_Login
         require_once 'res/libs/class.phpmailer.php';
         require_once 'res/libs/class.smtp.php';
         $mail = new PHPMailer(true);
-        //Server settings
-        $mail->CharSet = "UTF-8";
-        $mail->SMTPDebug = 0;                                       //Enable verbose debug output
-        $mail->isSMTP();                                            //Send using SMTP
-        $mail->SMTPAuth   = true;                                   //Enable SMTP authentication
-        $mail->Host       = Config::MAIL_HOST;                      //Set the SMTP server to send through
-        $mail->Username   = Config::MAIL_USERNAME;                  //SMTP username
-        $mail->Password   = Config::MAIL_PASSWORD;                  //SMTP password
-        $mail->SMTPSecure = Config::MAIL_ENCRYPTION;                //Enable implicit TLS encryption
-        $mail->Port       = Config::MAIL_PORT;                      //TCP port to connect to; use 587 if you have set `SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS`
+        try {
+            //Server settings
+            $mail->CharSet = "UTF-8";
+            $mail->SMTPDebug = 0;                                       //Enable verbose debug output
+            $mail->isSMTP();                                            //Send using SMTP
+            $mail->SMTPAuth   = true;                                   //Enable SMTP authentication
+            $mail->Host       = Config::MAIL_HOST;                      //Set the SMTP server to send through
+            $mail->Username   = Config::MAIL_USERNAME;                  //SMTP username
+            $mail->Password   = Config::MAIL_PASSWORD;                  //SMTP password
+            $mail->Port       = Config::MAIL_PORT;                      //TCP port to connect to; use 587 if you have set `SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS`
+            $mail->SMTPSecure = Config::MAIL_ENCRYPTION;                //Enable implicit TLS encryption
 
-        //Recipients
-        $mail->setFrom('from@example.com', 'Mailer');
-        $mail->addAddress('joe@example.net', 'Joe User');           //Add a recipient
-        $mail->AddReplyTo('noreply24@ikun.org', 'IKun.Org');
+            //Recipients
+            $mail->setFrom(Config::EMAIL);
+            $mail->addAddress($email); //Add a recipient
 
-        //Content
-        $mail->isHTML(true);                                        //Set email format to HTML
-        $mail->Subject = 'Chúc mừng bạn đã đăng ký thành công tài khoản';
-        $mail->Body    = 'This is the HTML message body <b>in bold!</b>';
-        $mail->AltBody = 'This is the body in plain text for non-HTML mail clients';
+            //Content
+            $mail->isHTML(true);                                        //Set email format to HTML
+            $mail->Subject = 'Chúc mừng bạn đã đăng ký thành công tài khoản';
+            $mail->Body    = 'This is the HTML message body <b>in bold!</b>';
+            $mail->AltBody = 'This is the body in plain text for non-HTML mail clients';
 
-        $mail->MsgHTML("
-            <h3>Bạn đã đăng ký thành công tài khoản</h3>
-            <span><b>Tên:</b> $name</span><br>
-            <span><b>Email:</b> $email</span><br>
-            <span><b>Tài khoản:</b> $username</span><br>
-            <span><b>Mật khẩu:</b> $password</span><br>
-            <br>
-            <br>
-            <b>Đăng nhập tại:</b> <a href=\"$domain\" target=\"_blank\">$domain</a>
-        ");
+            $mail->MsgHTML("
+                <h3>Bạn đã đăng ký thành công tài khoản</h3>
+                <span><b>Tên:</b> $name</span><br>
+                <span><b>Email:</b> $email</span><br>
+                <span><b>Tài khoản:</b> $username</span><br>
+                <span><b>Mật khẩu:</b> $password</span><br>
+                <br>
+                <br>
+                <b>Đăng nhập tại:</b> <a href=\"$domain\" target=\"_blank\">$domain</a>
+            ");
 
-        if (!$mail->Send()) {
+            if (!$mail->Send()) {
+                return false;
+            } else {
+                return true;
+            }
+        } catch (\phpmailerException $e) {
             return false;
-        } else {
-            return true;
         }
     }
 }
