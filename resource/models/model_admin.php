@@ -355,8 +355,8 @@ class Model_Admin extends Database
     }
     public function get_list_units($subject_id)
     {
-        $sql = "SELECT DISTINCT unit, COUNT(unit) as total FROM questions 
-        WHERE subject_id = :subject_id GROUP BY unit";
+        $sql = "SELECT DISTINCT subject_id, COUNT(subject_id) as total FROM questions 
+        WHERE subject_id = :subject_id GROUP BY subject_id";
 
         $param = [
             ':subject_id' => $subject_id
@@ -470,11 +470,9 @@ class Model_Admin extends Database
     public function get_list_questions($column_order, $sort_order, $start, $offset)
     {
         $sql = "
-        SELECT DISTINCT questions.question_id,questions.question_content,questions.unit,grades.detail as grade_detail,
+        SELECT DISTINCT questions.question_id,questions.question_content,questions.unit,
         questions.answer_a,questions.answer_b,questions.answer_c,questions.answer_d,
-        questions.correct_answer,subjects.subject_detail,levels.level_detail FROM `questions`
-        INNER JOIN grades ON grades.grade_id = questions.grade_id
-        INNER JOIN levels ON levels.level_id = questions.level_id
+        questions.correct_answer,subjects.subject_detail FROM `questions`
         INNER JOIN subjects ON subjects.subject_id = questions.subject_id
         ORDER BY $column_order $sort_order LIMIT $start, $offset";
 
@@ -711,8 +709,8 @@ class Model_Admin extends Database
     }
     public function get_test_score($test_code)
     {
-        $sql = "SELECT DISTINCT * FROM `scores` INNER JOIN students ON scores.student_id = students.student_id
-        INNER JOIN classes ON students.class_id = classes.class_id
+        $sql = "SELECT * FROM `scores` 
+        INNER JOIN students ON scores.student_id = students.student_id
         WHERE test_code = :test_code";
 
         $param = [ ':test_code' => $test_code ];

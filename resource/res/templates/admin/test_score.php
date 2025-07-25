@@ -13,7 +13,6 @@
 					<th class="">STT</th>
 					<th class="">Tên</th>
 					<th class="">Tài Khoản</th>
-					<th class="">Lớp</th>
 					<th class="">Điểm</th>
 				</tr>
 			</thead>
@@ -25,7 +24,6 @@
 						<td><?=($i+1)?></td>
 						<td><?=$scores[$i]->name?></td>
 						<td><?=$scores[$i]->username?></td>
-						<td><?=$scores[$i]->class_name?></td>
 						<td><?=$scores[$i]->score_number?></td>
 					</tr>
 					<?php
