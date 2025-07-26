@@ -24,9 +24,9 @@ class Config
     const BANK_STK = "0123456789";  // Số tài khoản ngân hàng
 
     const MAIL_DRIVER = "smtp";
-    const MAIL_HOST = "sandbox.smtp.mailtrap.io";
-    const MAIL_PORT = 2525;
-    const MAIL_USERNAME = "3148f1baadc370";
-    const MAIL_PASSWORD = "7c4d4d7ae78854";
+    const MAIL_HOST = "mail.aviatest.vn";
+    const MAIL_PORT = 587;
+    const MAIL_USERNAME = "sales@aviatest.vn";
+    const MAIL_PASSWORD = "LbWEzp4AQAgK9KsP3HNX";
     const MAIL_ENCRYPTION = "tls";
 }

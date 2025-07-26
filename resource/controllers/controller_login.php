@@ -236,13 +236,14 @@ class Controller_Login
         }
 
         if ($result['result'] == 'OK') {
-            $modelAdmin->add_student($username, md5($password), $name, $class_id, $email, $birthday, $gender);
             $domain = (empty($_SERVER['HTTPS']) ? 'http' : 'https') . "://$_SERVER[HTTP_HOST]";
             if (!$this->send_mail_register_student($username, $password, $name, $email, $domain)) {
                 $modelAdmin->del_student_by_email($email);
                 $result['result'] = 'NG';
                 $result['errors'][] = 'Đăng ký thất bại';
                 echo json_encode($result);
+            } else {
+                $modelAdmin->add_student($username, md5($password), $name, $class_id, $email, $birthday, $gender);
             }
         }
 
@@ -268,7 +269,7 @@ class Controller_Login
             $mail->SMTPSecure = Config::MAIL_ENCRYPTION;                //Enable implicit TLS encryption
 
             //Recipients
-            $mail->setFrom(Config::EMAIL);
+            $mail->setFrom(Config::MAIL_USERNAME);
             $mail->addAddress($email); //Add a recipient
 
             //Content
